@@ -1,0 +1,19 @@
+postsubmits:
+  AndyTauber/andy-prow:
+  - name: test-postsubmit
+    cluster: prow-service
+    decorate: true
+    spec:
+      containers:
+      - image: alpine
+        command: ["/bin/printenv"]
+presubmits:
+  AndyTauber/andy-prow:
+  - name: test-presubmit
+    cluster: prow-build
+    decorate: true
+    always_run: true
+    spec:
+      containers:
+      - image: alpine
+        command: ["/bin/printenv"]
