@@ -1,0 +1,29 @@
+postsubmits:
+  vagator/test-prow:
+  - name: test-postsubmit
+    decorate: true
+    annotations:
+      testgrid-dashboards: test-prow
+      testgrid-tab-name: Testing Prow
+    spec:
+      containers:
+      - image: alpine
+        command: ["/bin/printenv"]
+presubmits:
+  vagator/test-prow:
+  - name: test-presubmit
+    cluster: test-jobs
+    decorate: true
+    always_run: true
+    spec:
+      containers:
+      - image: alpine
+        command: ["/bin/printenv"]
+  - name: test-presubmit-01
+    cluster: test-jobs
+    decorate: true
+    always_run: true
+    spec:
+      containers:
+      - image: alpine
+        command: ["/bin/printenv"]        

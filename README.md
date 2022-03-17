@@ -1,2 +1,1 @@
-# andy-infra
-prow poc infra repo
+# copy of vagator/test-infra

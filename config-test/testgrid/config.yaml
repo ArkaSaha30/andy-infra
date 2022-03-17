@@ -1,0 +1,29 @@
+dashboard_groups:
+- name: AndyTauber
+  dashboard_names:
+    - andy-prow
+    - build-images
+
+dashboards:
+- name: andy-prow
+  dashboard_tab:
+    - name: AndyTauberTesting Prow
+      test_group_name: andy-prow-group
+- name: build-images
+  dashboard_tab:
+    - name: AndyTauber Building test images
+      test_group_name: build-images-group
+    - name: AndyTauber-periodics
+      test_group_name: periodic-building-test-images-group
+    - name: image-builder
+      test_group_name: push-image-builder
+
+test_groups:
+- name: andy-prow-group
+  gcs_prefix: vagator-prow/logs/test-postsubmit
+- name: build-images-group
+  gcs_prefix: vagator-prow/logs/build-test-image
+- name: periodic-building-test-images-group
+  gcs_prefix: vagator-prow/logs/periodic-build-test-image
+- name: push-image-builder
+  gcs_prefix: vagator-prow/logs/push-image-builder
