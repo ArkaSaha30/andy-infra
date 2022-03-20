@@ -46,11 +46,11 @@ heart:
 
 config_updater:
   maps:
-    config/prow/config.yaml:
+    config-test/prow/config.yaml:
       name: config
-    config/prow/plugins.yaml:
+    config-test/prow/plugins.yaml:
       name: plugins
-    config/jobs/**/*.yaml:
+    config-test/jobs/**/*.yaml:
       name: job-config
       gzip: true
     experiment/test-configmap.txt:

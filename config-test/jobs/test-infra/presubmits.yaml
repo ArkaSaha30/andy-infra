@@ -3,16 +3,16 @@ presubmits:
   - name: pull-andy-infra-prow-checkconfig
     cluster: prow-build
     decorate: true
-    run_if_changed: '^(config/prow/(config|plugins).yaml$|config/jobs/.*.yaml$)'
+    run_if_changed: '^(config-test/prow/(config|plugins).yaml$|config-test/jobs/.*.yaml$)'
     spec:
       containers:
       - image: gcr.io/k8s-prow/checkconfig:v20211216-b5865074c4
         command:
         - /checkconfig
         args:
-        - --config-path=config/prow/config.yaml
-        - --job-config-path=config/jobs
-        - --plugin-config=config/prow/plugins.yaml
+        - --config-path=config-test/prow/config.yaml
+        - --job-config-path=config-test/jobs
+        - --plugin-config=config-test/prow/plugins.yaml
         - --strict
         - --warnings=mismatched-tide-lenient
         - --warnings=tide-strict-branch

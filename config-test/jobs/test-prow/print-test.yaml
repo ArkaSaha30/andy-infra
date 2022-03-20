@@ -1,18 +1,15 @@
-postsubmits:
+presubmits:
   AndyTauber/andy-prow:
-  - name: test-postsubmit
-    cluster: prow-service
+  - name: test-presubmit-andy-prow
+    cluster: prow-build
     decorate: true
-    annotations:
-      testgrid-dashboards: andy-prow
-      testgrid-tab-name: Testing Prow
+    always_run: true
     spec:
       containers:
       - image: alpine
         command: ["/bin/printenv"]
-presubmits:
-  AndyTauber/andy-prow:
-  - name: test-presubmit
+  AndyTauber/andy-infra:
+  - name: test-presubmit-andy-infra
     cluster: prow-build
     decorate: true
     always_run: true

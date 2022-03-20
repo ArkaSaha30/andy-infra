@@ -14,12 +14,12 @@ periodics:
     preset-dind-enabled: "true"
   spec:
     containers:
-    - image: public.ecr.aws/t0q8k6g2/vagator/test-image:v20220803-82253a6
+    - image: public.ecr.aws/t0q8k6g2/vagator/test-image:v20220403-adf09a6
       command:
       - images/test-image/run.sh
       args:
       - vmware-tanzu
       - community-edition
-      - make docker-management-and-cluster-e2e-test
+      - test/docker/run-tce-docker-managed-cluster.sh
       securityContext:
         privileged: true
