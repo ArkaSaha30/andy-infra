@@ -1,0 +1,20 @@
+presubmits:
+  GITHUB_ORG/GITHUB_REPO2:
+  - name: test-presubmit-GITHUB_REPO2
+    cluster: prow-build
+    decorate: true
+    always_run: true
+    spec:
+      containers:
+      - image: alpine
+        command: ["/bin/printenv"]
+  
+  GITHUB_ORG/GITHUB_REPO1:
+  - name: test-presubmit-GITHUB_REPO1
+    cluster: prow-build
+    decorate: true
+    always_run: true
+    spec:
+      containers:
+      - image: alpine
+        command: ["/bin/printenv"]

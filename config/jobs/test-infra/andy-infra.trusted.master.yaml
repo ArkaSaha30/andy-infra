@@ -1,0 +1,27 @@
+# ProwJobs defined in this file specify `cluster: andy-infra in order to run in Prow's service cluster.
+postsubmits:
+  AndyTauber/andy-infra:
+  - name: post-andy-infra-deploy-prow
+    cluster: prow-service-trusted
+    run_if_changed: '^config/prow/cluster/+\.yaml$'
+    decorate: true
+    branches:
+    - master
+    spec:
+      containers:
+      - image: public.ecr.aws/t0q8k6g2/vagator/test-image:v20220803-82253a6
+        command:
+        - /usr/local/bin/run.sh
+        args:
+        - AndyTauber
+        - andy-infra
+          cd ./config && \
+          make deploy
+        volumeMounts:
+        - name: kubeconfig
+          mountPath: /etc/kubeconfig
+          readOnly: true
+      volumes:
+      - name: kubeconfig
+        secret:
+          secretName: kubeconfig

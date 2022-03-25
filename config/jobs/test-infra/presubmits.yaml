@@ -1,6 +1,7 @@
 presubmits:
-  vagator/test-infra:
-  - name: pull-test-infra-prow-checkconfig
+  GITHUB_ORG/GITHUB_REPO1:
+  - name: pull-GITHUB_REPO1-prow-checkconfig
+    cluster: prow-build
     decorate: true
     run_if_changed: '^(config/prow/(config|plugins).yaml$|config/jobs/.*.yaml$)'
     spec:
@@ -9,9 +10,9 @@ presubmits:
         command:
         - /checkconfig
         args:
-        - --config-path=config/prow/config.yaml
-        - --job-config-path=config/jobs
-        - --plugin-config=config/prow/plugins.yaml
+        - --config-path=config-test/prow/config.yaml
+        - --job-config-path=config-test/jobs
+        - --plugin-config=config-test/prow/plugins.yaml
         - --strict
         - --warnings=mismatched-tide-lenient
         - --warnings=tide-strict-branch
@@ -21,3 +22,4 @@ presubmits:
         - --warnings=validate-urls
         - --warnings=unknown-fields
         - --warnings=duplicate-job-refs
+#

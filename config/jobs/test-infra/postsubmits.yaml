@@ -1,7 +1,7 @@
 postsubmits:
-  vagator/test-infra:
+  GITHUB_ORG/GITHUB_REPO1:
   - name: push-image-builder
-    cluster: test-jobs
+    cluster: prow-build
     decorate: true
     max_concurrency: 1
     branches:
@@ -21,11 +21,11 @@ postsubmits:
         - images/image-builder/run.sh
         args:
         - images/image-builder
-        - public.ecr.aws/t0q8k6g2/vagator/image-builder
+        - public.ecr.aws/t0q8k6g2/vagator/infratest/image-builder
         securityContext:
           privileged: true
   - name: push-test-image
-    cluster: test-jobs
+    cluster: prow-build
     decorate: true
     max_concurrency: 1
     branches:
@@ -45,7 +45,7 @@ postsubmits:
         - images/image-builder/run.sh
         args:
         - images/test-image
-        - public.ecr.aws/t0q8k6g2/vagator/test-image
+        - public.ecr.aws/t0q8k6g2/vagator/infratest/test-image
         securityContext:
           privileged: true
-
+#

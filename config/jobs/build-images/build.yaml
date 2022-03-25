@@ -1,6 +1,7 @@
 postsubmits:
-  vagator/test-infra:
+  GITHUB_ORG/GITHUB_REPO1:
   - name: build-test-image
+    cluster: prow-service
     decorate: true
     run_if_changed: "images/test/.*"
     branches:
@@ -29,14 +30,15 @@ postsubmits:
       volumes:
       - name: dind-storage
         emptyDir: {}
-
+#
 periodics:
 - name: periodic-build-test-image
+  cluster: prow-build
   decorate: true
   interval: 24h
   extra_refs:
-  - org: vagator
-    repo: test-infra
+  - org: GITHUB_ORG
+    repo: GITHUB_REPO1
     base_ref: main
   annotations:
     testgrid-dashboards: build-images

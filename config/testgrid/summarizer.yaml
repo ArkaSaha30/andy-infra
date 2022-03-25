@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: testgrid-summarizer
-  namespace: vagator-testgrid
+  namespace: andytauber-testgrid
   labels:
     component: summarizer
     app: testgrid

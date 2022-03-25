@@ -29,6 +29,11 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+BUILD_OS=$(uname -s)
+export BUILD_OS
+BUILD_ARCH=$(uname -m)
+export BUILD_ARCH
+
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 REPO_PATH="$(git rev-parse --show-toplevel)"
 # shellcheck source=infra/aws/utils/utils.sh
@@ -222,6 +227,35 @@ function create_build_cluster {
     }
 }
 
+function replace_prow_variables {
+    echo "Replacing prow variables..."
+
+    # replace variables for core prow
+    sed -i -e 's,"CERT_EMAIL",'\"${CERT_EMAIL}\"',g' "${REPO_PATH}"/config/prow/cluster-issuer.yaml;
+    sed -i -e 's,"PROW_FQDN",'\"${PROW_FQDN}\"',g' "${REPO_PATH}"/config/prow/cluster/ingress.yaml;
+    sed -i -e 's,"GCS_BUCKET",'\"${GCS_BUCKET}\"',g' "${REPO_PATH}"/config/prow/cluster/tide.yaml;
+    sed -i -e 's,"GCS_BUCKET",'\"${GCS_BUCKET}\"',g' "${REPO_PATH}"/config/prow/cluster/statusreconciler.yaml;
+    sed -i -e 's,"PROW_FQDN",'\"${PROW_FQDN}\"',g' "${REPO_PATH}"/config/prow/config.yaml;
+    sed -i -e 's,"GCS_BUCKET",'\"${GCS_BUCKET}\"',g' "${REPO_PATH}"/config/prow/config.yaml;
+    sed -i -e 's,"GITHUB_ORG",'\"${GITHUB_ORG}\"',g' "${REPO_PATH}"/config/prow/config.yaml;
+    sed -i -e 's,"GITHUB_ORG",'\"${GITHUB_ORG}\"',g' "${REPO_PATH}"/config/prow/plugins.yaml;
+    sed -i -e 's,"CGITHUB_REPO1",'\"${GITHUB_REPO1}\"',g' "${REPO_PATH}"/config/prow/plugins.yaml;
+    sed -i -e 's,"GITHUB_REPO2",'\"${GITHUB_REPO2}\"',g' "${REPO_PATH}"/config/prow/plugins.yaml;
+    sed -i -e 's,"GITHUB_ORG",'\"${GITHUB_ORG}\"',g' "${REPO_PATH}"/config/prow/job-seed.yaml;
+    sed -i -e 's,"GITHUB_REPO1",'\"${GITHUB_REPO1}\"',g' "${REPO_PATH}"/config/prow/job-seed.yaml;
+
+    # recurse through all jobs and replace variables
+    if [[ $BUILD_OS == "Darwin" ]]; then
+      egrep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs -I@ sed -i '' 's/GITHUB_ORG/${GITHUB_ORG}/g' @
+      egrep -rl 'GITHUB_REPO1' "${REPO_PATH}"/config/jobs | xargs -I@ sed -i '' 's/GITHUB_REPO1/${GITHUB_REPO1}/g' @
+      egrep -rl 'GITHUB_REPO2' "${REPO_PATH}"/config/jobs | xargs -I@ sed -i '' 's/GITHUB_REPO2/${GITHUB_REPO2}/g' @
+    elif [[ $BUILD_OS == "Linux" ]]; then
+      grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i 's/GITHUB_ORG/${GITHUB_ORG}/g'
+      grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i 's/GITHUB_REPO1/${GITHUB_REPO1}/g'
+      grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i 's/GITHUB_REPO2/${GITHUB_REPO2}/g'
+    fi
+}
+
 function install_prow_on_service_cluster {
     echo "Installing Prow on service cluster..."
     # Set service cluster variables
@@ -232,6 +266,11 @@ function install_prow_on_service_cluster {
         error "CONTEXT SWITCH TO SERVICE CLUSTER FAILED!"
         exit 1
     }
+
+    # create initial kubeconfig file
+    rm -f "${KUBECONFIG_PATH}"
+    go run "${K8S_TESTINFRA_PATH}"/gencred --context=prow-service-admin@prow-service --name=prow-service-trusted --output="${KUBECONFIG_PATH}"
+
     kubectl create clusterrolebinding cluster-admin-binding-"${USER}" \
   --clusterrole=cluster-admin --user="${USER}" || {
         error "CLUSTERROLEBINDING FAILED"
@@ -247,21 +286,18 @@ function install_prow_on_service_cluster {
     }
     kubectl apply -f cluster-issuer.yaml
 
-    kubectl -n test-pods create secret generic registry-username --from-literal=username=${REGISTRY_USERNAME}
-    kubectl -n test-pods create secret generic registry-password --from-literal=password=${REGISTRY_PASSWORD}
+    # secrets - this section will be replaced by external secrets
     kubectl -n prow create secret generic registry-username --from-literal=username=${REGISTRY_USERNAME}
     kubectl -n prow create secret generic registry-password --from-literal=password=${REGISTRY_PASSWORD}
 
-    kubectl -n test-pods create secret generic aws-access-key-id --from-literal=aws-access-key-id=${AWS_ACCESS_KEY_ID}
-    kubectl -n test-pods create secret generic aws-access-key-secret --from-literal=aws-access-key-secret=${AWS_SECRET_ACCESS_KEY}
     kubectl -n prow create secret generic aws-access-key-id --from-literal=aws-access-key-id=${AWS_ACCESS_KEY_ID}
     kubectl -n prow create secret generic aws-access-key-secret --from-literal=aws-access-key-secret=${AWS_SECRET_ACCESS_KEY}
 
-    kubectl -n test-pods create secret generic gcs-credentials --from-file=${GCS_CREDENTIAL_PATH}
     kubectl -n prow create secret generic gcs-credentials --from-file=${GCS_CREDENTIAL_PATH}
+    kubectl -n test-pods create secret generic gcs-credentials --from-file=${GCS_CREDENTIAL_PATH}
 
     # create hmac token
-    kubectl create secret -n prow generic hmac-token --from-file=hmac=${HMAC_TOKEN_PATH}
+    kubectl -n prow create secret generic hmac-token --from-file=hmac=${HMAC_TOKEN_PATH}
 
     # create github token
     kubectl -n prow create secret generic github-token --from-file=cert=${GITHUB_TOKEN_PATH} --from-literal=appid=${GITHUB_APP_ID}
@@ -270,21 +306,97 @@ function install_prow_on_service_cluster {
     kubectl -n prow create secret generic github-oauth-config --from-file=secret=${OAUTH_CONFIG_PATH}
     kubectl -n prow create secret generic cookie --from-file=secret=${COOKIE_PATH}
 
+    # create kubeconfig secret
+    kubectl -n prow create secret generic kubeconfig --from-file=config="${KUBECONFIG_PATH}"
+
     # create configmaps
-    kubectl create configmap plugins --from-file=plugins.yaml=plugins.yaml --dry-run=client -oyaml | kubectl apply -f - -n prow
-    kubectl create configmap config --from-file=config.yaml=config.yaml --dry-run=client -oyaml | kubectl apply -f - -n prow
+    kubectl create configmap plugins --from-file=plugins.yaml="${REPO_PATH}"/config/prow/plugins.yaml --dry-run=client -oyaml | kubectl apply -f - -n prow
+    kubectl create configmap config --from-file=config.yaml="${REPO_PATH}"/config/prow/config.yaml --dry-run=client -oyaml | kubectl apply -f - -n prow
     kubectl create configmap job-config --from-file=${JOB_CONFIG_PATH} --dry-run=client -oyaml | kubectl apply -f - -n prow
 
     # CRDs
     kubectl apply --server-side=true -f https://raw.githubusercontent.com/kubernetes/test-infra/master/config/prow/cluster/prowjob-crd/prowjob_customresourcedefinition.yaml
 
-    # need sed to replace prow.rajaskakodkar.dev with ${PROW_FQDN}
+    # apply prow components
+    kubectl apply -f "${REPO_PATH}"/config/prow/cluster/
 
-    kubectl apply -f /Users/atauber/prow/test-infra/config-test/prow/components.yaml
+    # wait for and display LB fqdn
+    echo "Getting the ingress load balancer hostname..."
+    INGRESS_HOSTNAME=""
+    while [ -z $INGRESS_HOSTNAME ]; do
+      echo "Waiting for end point..."
+      INGRESS_HOSTNAME=$(kubectl -n prow get ingress prow --output="jsonpath={.status.loadBalancer.ingress[0].hostname}")
+      [ -z "$INGRESS_HOSTNAME" ] && sleep 10
+    done
+    echo "The ingress load balancer hostname is: ${INGRESS_HOSTNAME}..."
+    echo "Please update your DNS CNAME to this address."
+}
 
+function install_prow_on_build_cluster {
+    echo "Installing Prow on build cluster..."
+    # Set build cluster variables
+    echo "Setting BUILD CLUSTER NAME to ${BUILD_CLUSTER_NAME}..."
+    tanzu cluster kubeconfig get "${BUILD_CLUSTER_NAME}" --admin
+    kubectl config use-context "${BUILD_CLUSTER_NAME}"-admin@"${BUILD_CLUSTER_NAME}" || {
+        error "CONTEXT SWITCH TO BUILD CLUSTER FAILED!"
+        exit 1
+    }
 
+    # add build context to kubeconfig file
+    go run "${K8S_TESTINFRA_PATH}"/gencred --context=prow-build-admin@prow-build --name=prow-build --output="${KUBECONFIG_PATH}"
+    go run "${K8S_TESTINFRA_PATH}"/gencred --context=prow-build-admin@prow-build --name=default --output="${KUBECONFIG_PATH}"
 
+    kubectl create clusterrolebinding cluster-admin-binding-"${USER}" \
+  --clusterrole=cluster-admin --user="${USER}" || {
+        error "CLUSTERROLEBINDING FAILED"
+        exit 1
+    }
+    kubectl create ns test-pods || {
+        error "CREATE NAMESPACE TEST-PODS FAILED!"
+        exit 1
+    }
 
+    # CRDs
+    kubectl apply --server-side=true -f https://raw.githubusercontent.com/kubernetes/test-infra/master/config/prow/cluster/prowjob-crd/prowjob_customresourcedefinition.yaml
+
+    # create secrets
+    kubectl -n test-pods create secret generic gcs-credentials --from-file=${GCS_CREDENTIAL_PATH}
+
+    # update kubeconfig secret on service cluster
+    echo "Updating the kubeconfig secret with build cluster context"
+    tanzu cluster kubeconfig get "${SERVICE_CLUSTER_NAME}" --admin
+    kubectl config use-context "${SERVICE_CLUSTER_NAME}"-admin@"${SERVICE_CLUSTER_NAME}" || {
+        error "CONTEXT SWITCH TO SERVICE CLUSTER FAILED!"
+        exit 1
+    }
+    kubectl -n prow delete secret kubeconfig
+    kubectl -n prow create secret generic kubeconfig --from-file=config="${KUBECONFIG_PATH}"
+}
+
+function install_base_packages_on_service_cluster {
+
+  echo "Installing base packages on PROW service cluster..."
+  tanzu cluster kubeconfig get "${SERVICE_CLUSTER_NAME}" --admin
+  kubectl config use-context "${SERVICE_CLUSTER_NAME}"-admin@"${SERVICE_CLUSTER_NAME}" || {
+      error "CONTEXT SWITCH TO SERVICE CLUSTER FAILED!"
+      exit 1
+  }
+  "${REPO_PATH}"/infra/aws/utils/add-tce-package-repo.sh || {
+      error "PACKAGE REPOSITORY INSTALLATION FAILED!"
+      exit 1
+  }
+  tanzu package available list || {
+      error "UNEXPECTED FAILURE OCCURRED GETTING PACKAGE LIST!"
+      exit 1
+  }
+  tanzu package install cert-manager --package-name cert-manager.community.tanzu.vmware.com --version 1.6.1 || {
+    error "UNEXPECTED FAILURE OCCURRED INSTALLING CERT-MANAGER!"
+    exit 1
+  }
+  tanzu package install contour --package-name contour.community.tanzu.vmware.com --version 1.18.1 -f ${REPO_PATH}/config-test/prow/contour-values.yaml || {
+    error "UNEXPECTED FAILURE OCCURRED INSTALLING CONTOUR"
+    exit 1
+  }
 }
 
 # Create management, service, and build clusters
@@ -293,27 +405,10 @@ create_service_cluster || exit 1
 create_build_cluster || exit 1
 
 # Install packages on service cluster
-echo "Installing packages on TCE service cluster..."
-tanzu cluster kubeconfig get "${SERVICE_CLUSTER_NAME}" --admin
-kubectl config use-context "${SERVICE_CLUSTER_NAME}"-admin@"${SERVICE_CLUSTER_NAME}" || {
-    error "CONTEXT SWITCH TO SERVICE CLUSTER FAILED!"
-    exit 1
-}
-"${REPO_PATH}"/infra/aws/utils/add-tce-package-repo.sh || {
-    error "PACKAGE REPOSITORY INSTALLATION FAILED!"
-    exit 1
-}
-tanzu package available list || {
-    error "UNEXPECTED FAILURE OCCURRED GETTING PACKAGE LIST!"
-    exit 1
-}
-tanzu package install cert-manager --package-name cert-manager.community.tanzu.vmware.com --version 1.6.1 || {
-  error "UNEXPECTED FAILURE OCCURRED INSTALLING CERT-MANAGER!"
-  exit 1
-}
-tanzu package install contour --package-name contour.community.tanzu.vmware.com --version 1.18.1 -f ${REPO_PATH}/config-test/prow/contour-values.yaml || {
-  error "UNEXPECTED FAILURE OCCURRED INSTALLING CONTOUR"
-  exit 1
-}
+install_base_packages_on_service_cluster || exit 1
+
+# replace variables in yaml files from infra repo
+replace_prow_variables || exit 1
 
 install_prow_on_service_cluster || exit 1
+install_prow_on_build_cluster || exit 1
