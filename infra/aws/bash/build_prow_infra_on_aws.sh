@@ -384,6 +384,7 @@ function install_prow_on_build_cluster {
     }
     kubectl -n prow delete secret kubeconfig
     kubectl -n prow create secret generic kubeconfig --from-file=config="${KUBECONFIG_PATH}"
+    kubectl -n test-pods create secret generic kubeconfig --from-file=config="${KUBECONFIG_PATH}"
 }
 
 function install_base_packages_on_service_cluster {
