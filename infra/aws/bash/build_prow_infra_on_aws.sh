@@ -230,6 +230,12 @@ function create_build_cluster {
 function replace_prow_variables {
     echo "Replacing prow variables..."
 
+    # create new /prow and /job folders
+    rm -rf "${REPO_PATH}"/config/prow
+    rm -rf "${REPO_PATH}"/config/jobs
+    cp -r "${REPO_PATH}"/config/prow-variable "${REPO_PATH}"/config/prow
+    cp -r "${REPO_PATH}"/config/jobs-variable "${REPO_PATH}"/config/jobs
+
     # replace variables for core prow
     gsed -i -e "s/CERT_EMAIL/${CERT_EMAIL}/g" "${REPO_PATH}"/config/prow/cluster-issuer.yaml;
     gsed -i -e "s/PROW_FQDN/${PROW_FQDN}/g" "${REPO_PATH}"/config/prow/cluster/ingress.yaml;
@@ -254,6 +260,12 @@ function replace_prow_variables {
       grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i "s/GITHUB_REPO1/${GITHUB_REPO1}/g"
       grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i "s/GITHUB_REPO2/${GITHUB_REPO2}/g"
     fi
+
+    # push the new folders to the repo
+    cd "${REPO_PATH}"
+    git add .
+    git commit -m "updated jobs and prow directories"
+    git push
 }
 
 function install_prow_on_service_cluster {

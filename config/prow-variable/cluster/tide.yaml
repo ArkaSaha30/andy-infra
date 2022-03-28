@@ -30,8 +30,8 @@ spec:
         - --github-endpoint=https://api.github.com
         - --github-graphql-endpoint=http://ghproxy/graphql
         - --gcs-credentials-file=/etc/gcs-credentials/service-account.json
-        - --status-path=gs://andytauber-prow/tide-status
-        - --history-uri=gs://andytauber-prow/tide-history.json
+        - --status-path=gs://GCS_BUCKET/tide-status
+        - --history-uri=gs://GCS_BUCKET/tide-history.json
         - --github-app-id=$(GITHUB_APP_ID)
         - --github-app-private-key-path=/etc/github/cert
         env:

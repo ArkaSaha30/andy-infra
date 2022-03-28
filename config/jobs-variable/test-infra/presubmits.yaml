@@ -1,6 +1,6 @@
 presubmits:
-  AndyTauber/andy-infra:
-  - name: pull-andy-infra-prow-checkconfig
+  GITHUB_ORG/GITHUB_REPO1:
+  - name: pull-GITHUB_REPO1-prow-checkconfig
     cluster: prow-build
     decorate: true
     run_if_changed: '^(config/prow/(config|plugins).yaml$|config/jobs/.*.yaml$)'

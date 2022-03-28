@@ -3,38 +3,41 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: prow
-  name: tide
+  name: hook
   labels:
-    app: tide
+    app: hook
 spec:
-  replicas: 1 # Do not scale up.
+  replicas: 2
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
-      app: tide
+      app: hook
   template:
     metadata:
       labels:
-        app: tide
+        app: hook
     spec:
-      serviceAccountName: "tide"
+      serviceAccountName: "hook"
+      terminationGracePeriodSeconds: 180
       containers:
-      - name: tide
-        image: gcr.io/k8s-prow/tide:v20211203-281e29a97a
+      - name: hook
+        image: gcr.io/k8s-prow/hook:v20211203-281e29a97a
+        imagePullPolicy: Always
         args:
         - --dry-run=false
         - --config-path=/etc/config/config.yaml
-        - --job-config-path=/etc/job-config
         - --github-endpoint=http://ghproxy
         - --github-endpoint=https://api.github.com
-        - --github-graphql-endpoint=http://ghproxy/graphql
-        - --gcs-credentials-file=/etc/gcs-credentials/service-account.json
-        - --status-path=gs://andytauber-prow/tide-status
-        - --history-uri=gs://andytauber-prow/tide-history.json
         - --github-app-id=$(GITHUB_APP_ID)
         - --github-app-private-key-path=/etc/github/cert
+        - --job-config-path=/etc/job-config
         env:
+        - name: KUBECONFIG
+          value: "/etc/kubeconfig/config:/etc/kubeconfig/config"
         - name: GITHUB_APP_ID
           valueFrom:
             secretKeyRef:
@@ -46,6 +49,12 @@ spec:
           - name: metrics
             containerPort: 9090
         volumeMounts:
+        - name: kubeconfig
+          mountPath: /etc/kubeconfig
+          readOnly: true
+        - name: hmac
+          mountPath: /etc/webhook
+          readOnly: true
         - name: github-token
           mountPath: /etc/github
           readOnly: true
@@ -55,10 +64,30 @@ spec:
         - name: job-config
           mountPath: /etc/job-config
           readOnly: true
-        - name: gcs-credentials
-          mountPath: /etc/gcs-credentials
+        - name: plugins
+          mountPath: /etc/plugins
           readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /healthz/ready
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 3
+          timeoutSeconds: 600
       volumes:
+      - name: kubeconfig
+        secret:
+          defaultMode: 420
+          secretName: kubeconfig
+      - name: hmac
+        secret:
+          secretName: hmac-token
       - name: github-token
         secret:
           secretName: github-token
@@ -68,19 +97,18 @@ spec:
       - name: job-config
         configMap:
           name: job-config
-      - name: gcs-credentials
-        secret:
-          secretName: gcs-credentials
+      - name: plugins
+        configMap:
+          name: plugins
 ---
 apiVersion: v1
 kind: Service
 metadata:
   namespace: prow
-  name: tide
+  name: hook
 spec:
   selector:
-    app: tide
+    app: hook
   ports:
-  - port: 80
-    targetPort: 8888
+  - port: 8888
   type: NodePort

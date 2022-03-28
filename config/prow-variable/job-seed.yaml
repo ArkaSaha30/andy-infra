@@ -1,5 +1,5 @@
 postsubmits:
-  AndyTauber/andy-infra:
+  GITHUB_ORG/GITHUB_REPO1:
   - name: test-postsubmit-andy-infra
     cluster: prow-service-trusted
     decorate: true

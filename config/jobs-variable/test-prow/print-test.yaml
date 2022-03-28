@@ -1,6 +1,6 @@
 presubmits:
-  AndyTauber/andy-prow:
-  - name: test-presubmit-andy-prow
+  GITHUB_ORG/GITHUB_REPO2:
+  - name: test-presubmit-GITHUB_REPO2
     cluster: prow-build
     decorate: true
     always_run: true
@@ -9,8 +9,8 @@ presubmits:
       - image: alpine
         command: ["/bin/printenv"]
 
-  AndyTauber/andy-infra:
-  - name: test-presubmit-andy-infra
+  GITHUB_ORG/GITHUB_REPO1:
+  - name: test-presubmit-GITHUB_REPO1
     cluster: prow-build
     decorate: true
     always_run: true

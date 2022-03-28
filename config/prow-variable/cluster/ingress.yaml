@@ -15,7 +15,7 @@ spec:
   tls:
   - secretName: httpsprow
     hosts:
-    - prow.andytauber.info
+    - PROW_FQDN
   defaultBackend:
     # specify the default backend for `ingress-gce` (https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#default_backend)
     service:
@@ -23,7 +23,7 @@ spec:
       port:
         number: 80
   rules:
-  - host: prow.andytauber.info
+  - host: PROW_FQDN
     http:
       paths:
       - path: /

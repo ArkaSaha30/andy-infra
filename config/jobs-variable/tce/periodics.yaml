@@ -4,8 +4,8 @@ periodics:
   decorate: true
   interval: 24h
   extra_refs:
-  - org: AndyTauber
-    repo: andy-infra
+  - org: GITHUB_ORG
+    repo: GITHUB_REPO1
     base_ref: main
   annotations:
     testgrid-dashboards: tce

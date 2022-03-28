@@ -11,11 +11,13 @@ Each cluster is made up of one control plane node and one worker node - both M5 
 
 TCE package repo has been installed on the service and build clusters in the "tanzu-package-repo-global" namespace.
 
+This repo has two folders: jobs-variable and prow-variable, that contain the source files (with variables) for the /jobs and /prow folders that will be used to deploy Prow.  **Caution** The build script will remove /jobs and /prow and replace them with new versions of yaml WITH variables replace.  Once the prow variables have been applied and the new folders created, the script will push the latest folders to the infra repo.  Auto update of Prow depends on file changes within /prow/cluster.  When making changes to Prow application version, remember to change both files within /prow/cluster **AND** /prow-variable/cluster.
+
 **Note:**
 aws-nuke does not work and is commented out.  The PowerUser rights we have in our sandbox AWS accounts do not allow us to use Alias which is required for aws-nuke.
 
 **Note:**
-This scripting uses gnu-sed `gsed`.  It will be installed by the install-dependencies
+This scripting uses gnu-sed `gsed`.  It will be installed by the install-dependencies script.
 
 ## AWS Infra Cluster Build variables
 These variables need to be exported to the console for the build script to process.  The AWS_SESSION_TOKEN will expire so a managed account build is only useful for "short" tests or jobs that don't require long running AWS sessions.  Useful for: build cluster --> do tests --> destroy

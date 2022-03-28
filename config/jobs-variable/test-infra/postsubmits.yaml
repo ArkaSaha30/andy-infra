@@ -1,5 +1,5 @@
 postsubmits:
-  AndyTauber/andy-infra:
+  GITHUB_ORG/GITHUB_REPO1:
   - name: push-image-builder
     cluster: prow-build
     decorate: true

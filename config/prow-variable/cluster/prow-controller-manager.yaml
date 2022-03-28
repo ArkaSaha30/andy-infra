@@ -3,35 +3,29 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: prow
-  name: tide
+  name: prow-controller-manager
   labels:
-    app: tide
+    app: prow-controller-manager
 spec:
-  replicas: 1 # Do not scale up.
-  strategy:
-    type: Recreate
+  replicas: 1
   selector:
     matchLabels:
-      app: tide
+      app: prow-controller-manager
   template:
     metadata:
       labels:
-        app: tide
+        app: prow-controller-manager
     spec:
-      serviceAccountName: "tide"
+      serviceAccountName: prow-controller-manager
       containers:
-      - name: tide
-        image: gcr.io/k8s-prow/tide:v20211203-281e29a97a
+      - name: prow-controller-manager
         args:
         - --dry-run=false
         - --config-path=/etc/config/config.yaml
         - --job-config-path=/etc/job-config
         - --github-endpoint=http://ghproxy
         - --github-endpoint=https://api.github.com
-        - --github-graphql-endpoint=http://ghproxy/graphql
-        - --gcs-credentials-file=/etc/gcs-credentials/service-account.json
-        - --status-path=gs://andytauber-prow/tide-status
-        - --history-uri=gs://andytauber-prow/tide-history.json
+        - --enable-controller=plank
         - --github-app-id=$(GITHUB_APP_ID)
         - --github-app-private-key-path=/etc/github/cert
         env:
@@ -40,12 +34,16 @@ spec:
             secretKeyRef:
               name: github-token
               key: appid
+        - name: KUBECONFIG
+          value: "/etc/kubeconfig/config:/etc/kubeconfig/config"
         ports:
-          - name: http
-            containerPort: 8888
-          - name: metrics
-            containerPort: 9090
+        - name: metrics
+          containerPort: 9090
+        image: gcr.io/k8s-prow/prow-controller-manager:v20211203-281e29a97a
         volumeMounts:
+        - name: kubeconfig
+          mountPath: /etc/kubeconfig
+          readOnly: true
         - name: github-token
           mountPath: /etc/github
           readOnly: true
@@ -55,10 +53,11 @@ spec:
         - name: job-config
           mountPath: /etc/job-config
           readOnly: true
-        - name: gcs-credentials
-          mountPath: /etc/gcs-credentials
-          readOnly: true
       volumes:
+      - name: kubeconfig
+        secret:
+          secretName: kubeconfig
+          defaultMode: 420
       - name: github-token
         secret:
           secretName: github-token
@@ -68,19 +67,3 @@ spec:
       - name: job-config
         configMap:
           name: job-config
-      - name: gcs-credentials
-        secret:
-          secretName: gcs-credentials
----
-apiVersion: v1
-kind: Service
-metadata:
-  namespace: prow
-  name: tide
-spec:
-  selector:
-    app: tide
-  ports:
-  - port: 80
-    targetPort: 8888
-  type: NodePort
