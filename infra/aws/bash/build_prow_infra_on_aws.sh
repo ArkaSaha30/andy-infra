@@ -272,6 +272,7 @@ function install_prow_on_service_cluster {
     rm -f "${KUBECONFIG_PATH}"
     cd "${K8S_TESTINFRA_PATH}"
     go run ./gencred --context=prow-service-admin@prow-service --name=prow-service-trusted --output="${KUBECONFIG_PATH}"
+    cd "${REPO_PATH}"/config/prow
 
     kubectl create clusterrolebinding cluster-admin-binding-"${USER}" \
   --clusterrole=cluster-admin --user="${USER}" || {
@@ -335,6 +336,7 @@ function install_prow_on_service_cluster {
     while [ -z $INGRESS_HOSTNAME ]; do
       echo "Waiting for end point..."
       INGRESS_HOSTNAME=$(kubectl -n prow get ingress prow --output="jsonpath={.status.loadBalancer.ingress[0].hostname}")
+      ((c++)) && ((c==20)) && c=0 && echo "GETTING INGRESS FAILED!" && exit 1
       [ -z "$INGRESS_HOSTNAME" ] && sleep 10
     done
     echo "The ingress load balancer hostname is: ${INGRESS_HOSTNAME}..."
@@ -353,8 +355,10 @@ function install_prow_on_build_cluster {
 
     # add build context to kubeconfig file
     echo "Updating the kubeconfig file for Build cluster..."
-    go run "${K8S_TESTINFRA_PATH}"/gencred --context=prow-build-admin@prow-build --name=prow-build --output="${KUBECONFIG_PATH}"
-    go run "${K8S_TESTINFRA_PATH}"/gencred --context=prow-build-admin@prow-build --name=default --output="${KUBECONFIG_PATH}"
+    cd "${K8S_TESTINFRA_PATH}"
+    go run ./gencred --context=prow-build-admin@prow-build --name=prow-build --output="${KUBECONFIG_PATH}"
+    go run ./gencred --context=prow-build-admin@prow-build --name=default --output="${KUBECONFIG_PATH}"
+    cd "${REPO_PATH}"/config/prow
 
     kubectl create clusterrolebinding cluster-admin-binding-"${USER}" \
   --clusterrole=cluster-admin --user="${USER}" || {
