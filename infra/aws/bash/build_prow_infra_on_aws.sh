@@ -233,7 +233,7 @@ function replace_prow_variables {
     # replace variables for core prow
     gsed -i -e "s/CERT_EMAIL/${CERT_EMAIL}/g" "${REPO_PATH}"/config/prow/cluster-issuer.yaml;
     gsed -i -e "s/PROW_FQDN/${PROW_FQDN}/g" "${REPO_PATH}"/config/prow/cluster/ingress.yaml;
-    gsed -i -e "s/CS_BUCKET/${GCS_BUCKET}/g" "${REPO_PATH}"/config/prow/cluster/tide.yaml;
+    gsed -i -e "s/GCS_BUCKET/${GCS_BUCKET}/g" "${REPO_PATH}"/config/prow/cluster/tide.yaml;
     gsed -i -e "s/GCS_BUCKET/${GCS_BUCKET}/g" "${REPO_PATH}"/config/prow/cluster/statusreconciler.yaml;
     gsed -i -e "s/PROW_FQDN/${PROW_FQDN}/g" "${REPO_PATH}"/config/prow/config.yaml;
     gsed -i -e "s/GCS_BUCKET/${GCS_BUCKET}/g" "${REPO_PATH}"/config/prow/config.yaml;
