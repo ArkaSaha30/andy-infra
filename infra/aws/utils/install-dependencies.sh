@@ -8,6 +8,16 @@
 BUILD_OS=$(uname -s)
 BUILD_ARCH=$(uname -m 2>/dev/null || echo Unknown)
 export BUILD_OS
+export BUILD_ARCH
+
+# If Darwin, check if brew is installed
+if [[ "$BUILD_OS" == "Darwin" ]]; then
+  echo "Checking for Homebrew..."
+  if [[ -z "$(command -v brew)" ]]; then
+    echo "Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  fi
+fi
 
 # Make sure docker is installed
 echo "Checking for Docker..."
@@ -35,7 +45,6 @@ if [[ -z "$(command -v docker)" ]]; then
             sudo usermod -aG docker "$(whoami)"
         fi
     elif [[ "$(BUILD_OS)" == "Darwin" ]]; then
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
         brew cask install docker
     fi
 else
@@ -74,25 +83,42 @@ else
 fi
 
 # Installing envsubst and aws-nuke
-# TODO(rajaskakodkar): Add installation steps for mac
 echo "Installing envsubst and aws-nuke"
 if [[ -z "$(command -v envsubst)" ]]; then
 	if [[ "$BUILD_OS" == "Linux" ]]; then
 		sudo apt-get update > /dev/null
 		sudo apt-get -y install gettext-base wget
 	elif [[ "$BUILD_OS" == "Darwin" ]]; then
-		echo "Please install gettext"
-		exit 1
+		echo "Installing gettext..."
+		brew install gettext
 	fi
 fi
 
 if [[ -z "$(command -v aws-nuke)" ]]; then
     if [[ "$BUILD_OS" == "Linux" ]]; then
         wget -q https://github.com/rebuy-de/aws-nuke/releases/download/v2.15.0/aws-nuke-v2.15.0-linux-amd64.tar.gz
-		tar xvzf aws-nuke-v2.15.0-linux-amd64.tar.gz && mv aws-nuke-v2.15.0-linux-amd64 aws-nuke
-		sudo mv aws-nuke /usr/local/bin/
+        tar xvzf aws-nuke-v2.15.0-linux-amd64.tar.gz && mv aws-nuke-v2.15.0-linux-amd64 aws-nuke
+        sudo mv aws-nuke /usr/local/bin/
     elif [[ "$BUILD_OS" == "Darwin" ]]; then
-        echo "Please install aws-nuke"
-        exit 1
+        if [[ "$BUILD_ARCH" == "x86_64" ]]; then
+            curl -LO https://github.com/rebuy-de/aws-nuke/releases/download/v2.15.0/aws-nuke-v2.15.0-darwin-amd64.tar.gz
+            tar -xvzf aws-nuke-v2.15.0-darwin-amd64.tar.gz
+            sudo mv aws-nuke-v2.15.0-darwin-amd64 /usr/local/bin/aws-nuke
+        elif [[ "$BUILD_ARCH" == "arm64" ]]; then
+            curl -LO https://github.com/rebuy-de/aws-nuke/releases/download/v2.15.0/aws-nuke-v2.15.0-darwin-arm64.tar.gz
+            tar -xvzf aws-nuke-v2.15.0-darwin-arm64.tar.gz
+            sudo mv aws-nuke-v2.15.0-darwin-arm64 /usr/local/bin/aws-nuke
+        else
+            error "$BUILD_OS-$BUILD_ARCH NOT SUPPORTED!!!"
+        fi
     fi
+else
+    echo "Found aws-nuke!"
+fi
+
+# if darwin, install gsed
+if [[ "$BUILD_OS" == "Darwin" ]]; then
+  if [[ -z "$(command -v gsed)" ]]; then
+    brew install gnu-sed
+  fi
 fi

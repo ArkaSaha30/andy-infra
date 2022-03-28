@@ -14,6 +14,9 @@ TCE package repo has been installed on the service and build clusters in the "ta
 **Note:**
 aws-nuke does not work and is commented out.  The PowerUser rights we have in our sandbox AWS accounts do not allow us to use Alias which is required for aws-nuke.
 
+**Note:**
+This scripting uses gnu-sed `gsed`.  It will be installed by the install-dependencies
+
 ## AWS Infra Cluster Build variables
 These variables need to be exported to the console for the build script to process.  The AWS_SESSION_TOKEN will expire so a managed account build is only useful for "short" tests or jobs that don't require long running AWS sessions.  Useful for: build cluster --> do tests --> destroy
 

@@ -231,28 +231,28 @@ function replace_prow_variables {
     echo "Replacing prow variables..."
 
     # replace variables for core prow
-    sed -i -e 's,"CERT_EMAIL",'\"${CERT_EMAIL}\"',g' "${REPO_PATH}"/config/prow/cluster-issuer.yaml;
-    sed -i -e 's,"PROW_FQDN",'\"${PROW_FQDN}\"',g' "${REPO_PATH}"/config/prow/cluster/ingress.yaml;
-    sed -i -e 's,"GCS_BUCKET",'\"${GCS_BUCKET}\"',g' "${REPO_PATH}"/config/prow/cluster/tide.yaml;
-    sed -i -e 's,"GCS_BUCKET",'\"${GCS_BUCKET}\"',g' "${REPO_PATH}"/config/prow/cluster/statusreconciler.yaml;
-    sed -i -e 's,"PROW_FQDN",'\"${PROW_FQDN}\"',g' "${REPO_PATH}"/config/prow/config.yaml;
-    sed -i -e 's,"GCS_BUCKET",'\"${GCS_BUCKET}\"',g' "${REPO_PATH}"/config/prow/config.yaml;
-    sed -i -e 's,"GITHUB_ORG",'\"${GITHUB_ORG}\"',g' "${REPO_PATH}"/config/prow/config.yaml;
-    sed -i -e 's,"GITHUB_ORG",'\"${GITHUB_ORG}\"',g' "${REPO_PATH}"/config/prow/plugins.yaml;
-    sed -i -e 's,"CGITHUB_REPO1",'\"${GITHUB_REPO1}\"',g' "${REPO_PATH}"/config/prow/plugins.yaml;
-    sed -i -e 's,"GITHUB_REPO2",'\"${GITHUB_REPO2}\"',g' "${REPO_PATH}"/config/prow/plugins.yaml;
-    sed -i -e 's,"GITHUB_ORG",'\"${GITHUB_ORG}\"',g' "${REPO_PATH}"/config/prow/job-seed.yaml;
-    sed -i -e 's,"GITHUB_REPO1",'\"${GITHUB_REPO1}\"',g' "${REPO_PATH}"/config/prow/job-seed.yaml;
+    gsed -i -e "s/CERT_EMAIL/${CERT_EMAIL}/g" "${REPO_PATH}"/config/prow/cluster-issuer.yaml;
+    gsed -i -e "s/PROW_FQDN/${PROW_FQDN}/g" "${REPO_PATH}"/config/prow/cluster/ingress.yaml;
+    gsed -i -e "s/CS_BUCKET/${GCS_BUCKET}/g" "${REPO_PATH}"/config/prow/cluster/tide.yaml;
+    gsed -i -e "s/GCS_BUCKET/${GCS_BUCKET}/g" "${REPO_PATH}"/config/prow/cluster/statusreconciler.yaml;
+    gsed -i -e "s/PROW_FQDN/${PROW_FQDN}/g" "${REPO_PATH}"/config/prow/config.yaml;
+    gsed -i -e "s/GCS_BUCKET/${GCS_BUCKET}/g" "${REPO_PATH}"/config/prow/config.yaml;
+    gsed -i -e "s/GITHUB_ORG/${GITHUB_ORG}/g" "${REPO_PATH}"/config/prow/config.yaml;
+    gsed -i -e "s/GITHUB_ORG/${GITHUB_ORG}/g" "${REPO_PATH}"/config/prow/plugins.yaml;
+    gsed -i -e "s/CGITHUB_REPO1/${GITHUB_REPO1}/g" "${REPO_PATH}"/config/prow/plugins.yaml;
+    gsed -i -e "s/GITHUB_REPO2/${GITHUB_REPO2}/g" "${REPO_PATH}"/config/prow/plugins.yaml;
+    gsed -i -e "s/GITHUB_ORG/${GITHUB_ORG}/g" "${REPO_PATH}"/config/prow/job-seed.yaml;
+    gsed -i -e "s/GITHUB_REPO1/${GITHUB_REPO1}/g" "${REPO_PATH}"/config/prow/job-seed.yaml;
 
     # recurse through all jobs and replace variables
     if [[ $BUILD_OS == "Darwin" ]]; then
-      egrep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs -I@ sed -i '' 's/GITHUB_ORG/${GITHUB_ORG}/g' @
-      egrep -rl 'GITHUB_REPO1' "${REPO_PATH}"/config/jobs | xargs -I@ sed -i '' 's/GITHUB_REPO1/${GITHUB_REPO1}/g' @
-      egrep -rl 'GITHUB_REPO2' "${REPO_PATH}"/config/jobs | xargs -I@ sed -i '' 's/GITHUB_REPO2/${GITHUB_REPO2}/g' @
+      egrep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs -I@ gsed -i -e "s/GITHUB_ORG/${GITHUB_ORG}/g" @
+      egrep -rl 'GITHUB_REPO1' "${REPO_PATH}"/config/jobs | xargs -I@ gsed -i -e "s/GITHUB_REPO1/${GITHUB_REPO1}/g" @
+      egrep -rl 'GITHUB_REPO2' "${REPO_PATH}"/config/jobs | xargs -I@ gsed -i -e "s/GITHUB_REPO2/${GITHUB_REPO2}/g" @
     elif [[ $BUILD_OS == "Linux" ]]; then
-      grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i 's/GITHUB_ORG/${GITHUB_ORG}/g'
-      grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i 's/GITHUB_REPO1/${GITHUB_REPO1}/g'
-      grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i 's/GITHUB_REPO2/${GITHUB_REPO2}/g'
+      grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i "s/GITHUB_ORG/${GITHUB_ORG}/g"
+      grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i "s/GITHUB_REPO1/${GITHUB_REPO1}/g"
+      grep -rl 'GITHUB_ORG' "${REPO_PATH}"/config/jobs | xargs sed -i "s/GITHUB_REPO2/${GITHUB_REPO2}/g"
     fi
 }
 
@@ -336,7 +336,6 @@ function install_prow_on_service_cluster {
     while [ -z $INGRESS_HOSTNAME ]; do
       echo "Waiting for end point..."
       INGRESS_HOSTNAME=$(kubectl -n prow get ingress prow --output="jsonpath={.status.loadBalancer.ingress[0].hostname}")
-      ((c++)) && ((c==20)) && c=0 && echo "GETTING INGRESS FAILED!" && exit 1
       [ -z "$INGRESS_HOSTNAME" ] && sleep 10
     done
     echo "The ingress load balancer hostname is: ${INGRESS_HOSTNAME}..."
@@ -414,12 +413,12 @@ function install_base_packages_on_service_cluster {
 }
 
 # Create management, service, and build clusters
-#create_management_cluster || exit 1
-#create_service_cluster || exit 1
-#create_build_cluster || exit 1
+create_management_cluster || exit 1
+create_service_cluster || exit 1
+create_build_cluster || exit 1
 
 # Install packages on service cluster
-#install_base_packages_on_service_cluster || exit 1
+install_base_packages_on_service_cluster || exit 1
 
 # replace variables in yaml files from infra repo
 replace_prow_variables || exit 1
