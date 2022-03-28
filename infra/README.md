@@ -58,13 +58,18 @@ export REGISTRY_PUSH="public.ecr.aws/<registry address>"
 ```
 
 **Secrets**
-Use the following variables to create the secrets, this will be removed if using external secrets:
+Use the following variables to create the secrets
 ```
 export GCS_CREDENTIAL_PATH="path-to-gcs-cred/service-account.json"
 export HMAC_TOKEN_PATH="path-to-hmac/hmac-secret"
 export GITHUB_TOKEN_PATH="path-to-github-token/private-key.pem"
 export OAUTH_CONFIG_PATH="path-to-oath-config/github-oauth-config"
 export COOKIE_PATH="path-to-cookie/cookie.txt"
+```
+
+**test-pods Secrets**
+```
+export USE_EXTERNAL_SECRETS=false
 ```
 
 ## Required infra setup

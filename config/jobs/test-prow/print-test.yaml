@@ -8,7 +8,7 @@ presubmits:
       containers:
       - image: alpine
         command: ["/bin/printenv"]
-  
+
   GITHUB_ORG/GITHUB_REPO1:
   - name: test-presubmit-GITHUB_REPO1
     cluster: prow-build

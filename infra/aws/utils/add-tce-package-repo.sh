@@ -18,7 +18,7 @@ tanzu package repository add ${REPO_NAME} --namespace ${REPO_NAMESPACE} --url ${
 # Check status every ~5 seconds interval
 for (( i = 1 ; i <= 80 ; i++))
 do
-    repo_status=$(tanzu package repository get ${REPO_NAME} -o json | jq -r '.[0].status | select (. != null)')
+    repo_status=$(tanzu package repository get ${REPO_NAME} --namespace ${REPO_NAMESPACE} -o json | jq -r '.[0].status | select (. != null)')
     if [[ ${repo_status} == "Reconcile succeeded" ]]; then
         echo "TCE package repository added!"
         exit 0

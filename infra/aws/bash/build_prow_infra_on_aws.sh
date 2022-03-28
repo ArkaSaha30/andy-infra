@@ -139,7 +139,7 @@ function create_management_cluster {
     export CLUSTER_PLAN="${MGMT_CLUSTER_PLAN}"
     export CONTROL_PLANE_MACHINE_TYPE="${MGMT_CONTROL_PLANE_MACHINE_TYPE}"
     export NODE_MACHINE_TYPE="${MGMT_NODE_MACHINE_TYPE}"
-    tanzu management-cluster create "${CLUSTER_NAME}" -f "${REPO_PATH}"/infra/aws/configs/mgr_cluster_config.yaml || {
+    tanzu management-cluster create "${CLUSTER_NAME}" -f "${REPO_PATH}"/infra/aws/configs/cluster_config.yaml || {
         error "MANAGEMENT CLUSTER CREATION FAILED!"
         collect_management_cluster_diagnostics ${CLUSTER_NAME}
         delete_kind_cluster
@@ -173,7 +173,7 @@ function create_service_cluster {
     export CLUSTER_PLAN="${SERVICE_CLUSTER_PLAN}"
     export CONTROL_PLANE_MACHINE_TYPE="${SERVICE_CONTROL_PLANE_MACHINE_TYPE}"
     export NODE_MACHINE_TYPE="${SERVICE_NODE_MACHINE_TYPE}"
-    tanzu cluster create "${CLUSTER_NAME}" -f "${REPO_PATH}"/infra/aws/configs/service_cluster_config.yaml || {
+    tanzu cluster create "${CLUSTER_NAME}" -f "${REPO_PATH}"/infra/aws/configs/cluster_config.yaml || {
         error "SERVICE CLUSTER CREATION FAILED!"
         collect_management_and_service_cluster_diagnostics aws ${MGMT_CLUSTER_NAME} ${SERVICE_CLUSTER_NAME}
         nuke_management_and_service_clusters
@@ -203,7 +203,7 @@ function create_build_cluster {
     export CLUSTER_PLAN="${BUILD_CLUSTER_PLAN}"
     export CONTROL_PLANE_MACHINE_TYPE="${BUILD_CONTROL_PLANE_MACHINE_TYPE}"
     export NODE_MACHINE_TYPE="${BUILD_NODE_MACHINE_TYPE}"
-    tanzu cluster create "${CLUSTER_NAME}" -f "${REPO_PATH}"/infra/aws/configs/build_cluster_config.yaml || {
+    tanzu cluster create "${CLUSTER_NAME}" -f "${REPO_PATH}"/infra/aws/configs/cluster_config.yaml || {
         error "BUILD CLUSTER CREATION FAILED!"
         collect_management_and_service_cluster_diagnostics aws ${MGMT_CLUSTER_NAME} ${BUILD_CLUSTER_NAME}
         nuke_management_and_child_clusters
@@ -268,8 +268,10 @@ function install_prow_on_service_cluster {
     }
 
     # create initial kubeconfig file
+    echo "Create initial kubeconfig file..."
     rm -f "${KUBECONFIG_PATH}"
-    go run "${K8S_TESTINFRA_PATH}"/gencred --context=prow-service-admin@prow-service --name=prow-service-trusted --output="${KUBECONFIG_PATH}"
+    cd "${K8S_TESTINFRA_PATH}"
+    go run ./gencred --context=prow-service-admin@prow-service --name=prow-service-trusted --output="${KUBECONFIG_PATH}"
 
     kubectl create clusterrolebinding cluster-admin-binding-"${USER}" \
   --clusterrole=cluster-admin --user="${USER}" || {
@@ -284,9 +286,10 @@ function install_prow_on_service_cluster {
         error "CREATE NAMESPACE TEST-PODS FAILED!"
         exit 1
     }
-    kubectl apply -f cluster-issuer.yaml
+    kubectl apply -f "${REPO_PATH}"/config/prow/cluster-issuer.yaml
 
-    # secrets - this section will be replaced by external secrets
+    # secrets
+    echo "Creating secrets..."
     kubectl -n prow create secret generic registry-username --from-literal=username=${REGISTRY_USERNAME}
     kubectl -n prow create secret generic registry-password --from-literal=password=${REGISTRY_PASSWORD}
 
@@ -310,6 +313,7 @@ function install_prow_on_service_cluster {
     kubectl -n prow create secret generic kubeconfig --from-file=config="${KUBECONFIG_PATH}"
 
     # create configmaps
+    echo "Creating configmaps..."
     kubectl create configmap plugins --from-file=plugins.yaml="${REPO_PATH}"/config/prow/plugins.yaml --dry-run=client -oyaml | kubectl apply -f - -n prow
     kubectl create configmap config --from-file=config.yaml="${REPO_PATH}"/config/prow/config.yaml --dry-run=client -oyaml | kubectl apply -f - -n prow
     kubectl create configmap job-config --from-file=${JOB_CONFIG_PATH} --dry-run=client -oyaml | kubectl apply -f - -n prow
@@ -319,6 +323,11 @@ function install_prow_on_service_cluster {
 
     # apply prow components
     kubectl apply -f "${REPO_PATH}"/config/prow/cluster/
+
+    # apply external secrets to test-pods ns
+    if [ "$USE_EXTERNAL_SECRETS" = true ]; then
+      kubectl apply -f "${REPO_PATH}"/config/prow/external-secrets.yaml
+    fi
 
     # wait for and display LB fqdn
     echo "Getting the ingress load balancer hostname..."
@@ -343,6 +352,7 @@ function install_prow_on_build_cluster {
     }
 
     # add build context to kubeconfig file
+    echo "Updating the kubeconfig file for Build cluster..."
     go run "${K8S_TESTINFRA_PATH}"/gencred --context=prow-build-admin@prow-build --name=prow-build --output="${KUBECONFIG_PATH}"
     go run "${K8S_TESTINFRA_PATH}"/gencred --context=prow-build-admin@prow-build --name=default --output="${KUBECONFIG_PATH}"
 
@@ -393,19 +403,19 @@ function install_base_packages_on_service_cluster {
     error "UNEXPECTED FAILURE OCCURRED INSTALLING CERT-MANAGER!"
     exit 1
   }
-  tanzu package install contour --package-name contour.community.tanzu.vmware.com --version 1.18.1 -f ${REPO_PATH}/config-test/prow/contour-values.yaml || {
+  tanzu package install contour --package-name contour.community.tanzu.vmware.com --version 1.18.1 -f ${REPO_PATH}/config/prow/contour-values.yaml || {
     error "UNEXPECTED FAILURE OCCURRED INSTALLING CONTOUR"
     exit 1
   }
 }
 
 # Create management, service, and build clusters
-create_management_cluster || exit 1
-create_service_cluster || exit 1
-create_build_cluster || exit 1
+#create_management_cluster || exit 1
+#create_service_cluster || exit 1
+#create_build_cluster || exit 1
 
 # Install packages on service cluster
-install_base_packages_on_service_cluster || exit 1
+#install_base_packages_on_service_cluster || exit 1
 
 # replace variables in yaml files from infra repo
 replace_prow_variables || exit 1
