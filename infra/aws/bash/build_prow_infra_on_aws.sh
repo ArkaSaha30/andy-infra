@@ -245,7 +245,7 @@ function replace_prow_variables {
     gsed -i -e "s/GCS_BUCKET/${GCS_BUCKET}/g" "${REPO_PATH}"/config/prow/config.yaml;
     gsed -i -e "s/GITHUB_ORG/${GITHUB_ORG}/g" "${REPO_PATH}"/config/prow/config.yaml;
     gsed -i -e "s/GITHUB_ORG/${GITHUB_ORG}/g" "${REPO_PATH}"/config/prow/plugins.yaml;
-    gsed -i -e "s/CGITHUB_REPO1/${GITHUB_REPO1}/g" "${REPO_PATH}"/config/prow/plugins.yaml;
+    gsed -i -e "s/GITHUB_REPO1/${GITHUB_REPO1}/g" "${REPO_PATH}"/config/prow/plugins.yaml;
     gsed -i -e "s/GITHUB_REPO2/${GITHUB_REPO2}/g" "${REPO_PATH}"/config/prow/plugins.yaml;
     gsed -i -e "s/GITHUB_ORG/${GITHUB_ORG}/g" "${REPO_PATH}"/config/prow/job-seed.yaml;
     gsed -i -e "s/GITHUB_REPO1/${GITHUB_REPO1}/g" "${REPO_PATH}"/config/prow/job-seed.yaml;

@@ -2,12 +2,12 @@
 ---
 triggers:
 - repos:
-  - AndyTauber/GITHUB_REPO1
+  - AndyTauber/andy-infra
   - AndyTauber/andy-prow
 
 approve:
 - repos:
-  - AndyTauber/GITHUB_REPO1
+  - AndyTauber/andy-infra
   - AndyTauber/andy-prow
   require_self_approval: false
 
@@ -29,7 +29,7 @@ size:
 
 lgtm:
 - repos:
-  - AndyTauber/GITHUB_REPO1
+  - AndyTauber/andy-infra
   - AndyTauber/andy-prow
   review_acts_as_lgtm: true
 
@@ -59,7 +59,7 @@ config_updater:
 
 welcome:
 - repos:
-  - GITHUB_REPO1
+  - andy-infra
   - andy-prow
   message_template: "Welcome @{{.AuthorLogin}}! <br><br>It looks like this is your first PR to <a href='https://github.com/{{.Org}}/{{.Repo}}'>{{.Org}}/{{.Repo}}</a> 🎉. You will be prompted by a bot to use commands during the review process. Do not be afraid to follow the prompts! It is okay to experiment."
 
@@ -100,6 +100,6 @@ plugins:
     - wip
     - yuks
 
-  AndyTauber/GITHUB_REPO1:
+  AndyTauber/andy-infra:
     plugins:
     - config-updater
