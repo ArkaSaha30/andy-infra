@@ -22,6 +22,22 @@ This scripting uses gnu-sed `gsed`.  It will be installed by the install-depende
 ## AWS Infra Cluster Build variables
 These variables need to be exported to the console for the build script to process.  The AWS_SESSION_TOKEN will expire so a managed account build is only useful for "short" tests or jobs that don't require long running AWS sessions.  Useful for: build cluster --> do tests --> destroy
 
+To get started:
+1) specify a directory to place your keys and sensitive data in
+2) create or copy files with sensitive data to the above directory
+   1) github token
+   2) github oauth config
+   3) github app cookie
+   4) hmac secret
+   5) oauth token
+   6) GCP bucket service account
+3) create an env.txt file with the below export statements and update for your environment and keys.  Copy current cloudgate id/key/token to env.txt
+4) copy contents of env.txt to your terminal session to create environment variables in the session
+5) run ./build_prow_infra_on_aws.sh to start your build
+6) Update your DNS cname with ingress LB address
+
+Once all is deployed and running, the only job that will be configured will be what was originally configured in the job-seed.yaml file.  In order to implement any other jobs, you will need to edit the job yaml (add a comment) and submit that change via a PR for the config-updater to pick it up and update the job-config configmap.
+
 **cloudgate**
 ```
 export AWS_ACCESS_KEY_ID=<access key id>
@@ -31,6 +47,11 @@ export AWS_SESSION_TOKEN=<session token if managed account>
 ```
 **cluster variables**
 ```
+export AWS_AMI_ID="ami-"
+export AWS_REGION=us-east-1
+export AWS_NODE_AZ="us-east-1a"
+export AWS_SSH_KEY_NAME="default-aws"
+
 export MGMT_CLUSTER_NAME="prow-mgr"
 export MGMT_CLUSTER_PLAN="dev"
 export MGMT_CONTROL_PLANE_MACHINE_TYPE="m5.large"
@@ -52,9 +73,9 @@ export BUILD_NODE_MACHINE_TYPE="m5.large"
 export GITHUB_APP_ID=<github app id>
 export GITHUB_ORG="AndyTauber"
 export GITHUB_REPO1="andy-infra"
-export GITHUB_REPO2="andy-test"
+export GITHUB_REPO2="andy-prow"
 export MY_EMAIL="atauber@vmware.com"
-export JOB_CONFIG_PATH="path-to-jobs/jobs/test-prow/test.yaml"
+export JOB_CONFIG_PATH="path-to-jobs/config/prow/job-seed.yaml"
 export GCS_BUCKET="andytauber-prow"
 export PROW_FQDN="prow.andytauber.info"
 export CERT_EMAIL="atauber@vmware.com"
@@ -65,16 +86,17 @@ export REGISTRY_PUSH="public.ecr.aws/<registry address>"
 **Secrets**
 Use the following variables to create the secrets
 ```
-export GCS_CREDENTIAL_PATH="path-to-gcs-cred/service-account.json"
-export HMAC_TOKEN_PATH="path-to-hmac/hmac-secret"
-export GITHUB_TOKEN_PATH="path-to-github-token/private-key.pem"
-export OAUTH_CONFIG_PATH="path-to-oath-config/github-oauth-config"
-export COOKIE_PATH="path-to-cookie/cookie.txt"
-```
-
-**test-pods Secrets**
-```
 export USE_EXTERNAL_SECRETS=false
+export KUBECONFIG_PATH="path-to/kubeconfig.yaml"
+# where is gencred
+export K8S_TESTINFRA_PATH="/path-to/prow/kubernetes/test-infra"
+export GCS_CREDENTIAL_PATH="/path-to/service-account.json"
+export HMAC_TOKEN_PATH="/path-to/hmac-secret"
+export GITHUB_TOKEN_PATH="/path-to/andytauber-prow-test.2022-03-10.private-key.pem"
+export OAUTH_CONFIG_PATH="/path-to/github-oauth-config"
+export COOKIE_PATH="/path-to/cookie.txt"
+# is registry password still created and this not used?
+export REGISTRY_PASSWORD="test"
 ```
 
 ## Required infra setup
