@@ -1,7 +1,7 @@
 ### comment to initiate config-updater deploy ###
 presubmits:
   AndyTauber/andy-infra:
-  - name: pull-andy-infra-prow-checkconfig
+  - name: pull-andy-infra-prow-checkconfig-ver1
     cluster: prow-build
     decorate: true
     run_if_changed: '^(config/prow/(config|plugins).yaml$|config/jobs/.*.yaml$)'
