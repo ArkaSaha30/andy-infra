@@ -10,9 +10,9 @@ presubmits:
         command:
         - /checkconfig
         args:
-        - --config-path=config-test/prow/config.yaml
-        - --job-config-path=config-test/jobs
-        - --plugin-config=config-test/prow/plugins.yaml
+        - --config-path=config/prow/config.yaml
+        - --job-config-path=config/jobs
+        - --plugin-config=config/prow/plugins.yaml
         - --strict
         - --warnings=mismatched-tide-lenient
         - --warnings=tide-strict-branch
