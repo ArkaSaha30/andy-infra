@@ -284,6 +284,7 @@ function install_prow_on_service_cluster {
     rm -f "${KUBECONFIG_PATH}"
     cd "${K8S_TESTINFRA_PATH}"
     go run ./gencred --context=prow-service-admin@prow-service --name=prow-service-trusted --output="${KUBECONFIG_PATH}"
+    go run ./gencred --context=prow-service-admin@prow-service --name=default --output="${KUBECONFIG_PATH}"
     cd "${REPO_PATH}"/config/prow
 
     kubectl create clusterrolebinding cluster-admin-binding-"${USER}" \
@@ -368,7 +369,6 @@ function install_prow_on_build_cluster {
     echo "Updating the kubeconfig file for Build cluster..."
     cd "${K8S_TESTINFRA_PATH}"
     go run ./gencred --context=prow-build-admin@prow-build --name=prow-build --output="${KUBECONFIG_PATH}"
-    go run ./gencred --context=prow-build-admin@prow-build --name=default --output="${KUBECONFIG_PATH}"
     cd "${REPO_PATH}"/config/prow
 
     kubectl create clusterrolebinding cluster-admin-binding-"${USER}" \
