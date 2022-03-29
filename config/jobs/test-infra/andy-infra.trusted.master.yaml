@@ -2,9 +2,9 @@
 ### comment to initiate config-updater deploy ###
 postsubmits:
   AndyTauber/andy-infra:
-  - name: post-andy-infra-deploy-prow-ver1
+  - name: post-andy-infra-deploy-prow-ver2
     cluster: prow-service-trusted
-    run_if_changed: 'config/prow/cluster/'
+    run_if_changed: '^config/prow/cluster/'
     decorate: true
     branches:
     - master
