@@ -1,4 +1,4 @@
-# comment to initiate config-updater deploy
+### comment to initiate config-updater deploy ###
 presubmits:
   AndyTauber/andy-infra:
   - name: pull-andy-infra-prow-checkconfig
