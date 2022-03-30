@@ -17,6 +17,9 @@ postsubmits:
         - AndyTauber
         - andy-infra
         - cd ./config && make deploy
+        env:
+        - name: KUBECONFIG
+          value: "/etc/kubeconfig/config:/etc/kubeconfig/config"
         volumeMounts:
         - name: kubeconfig
           mountPath: /etc/kubeconfig
