@@ -16,7 +16,7 @@ postsubmits:
         args:
         - AndyTauber
         - andy-infra
-        - cd ./config && make deploy
+        - cd ./config && kubectl --context=prow-service-trusted apply -f ./prow/cluster/
         env:
         - name: KUBECONFIG
           value: "/etc/kubeconfig/config:/etc/kubeconfig/config"
