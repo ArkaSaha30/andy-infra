@@ -2,12 +2,12 @@
 ### comment to initiate config-updater deploy ###
 postsubmits:
   AndyTauber/andy-infra:
-  - name: post-andy-infra-deploy-prow-ver3
+  - name: post-andy-infra-deploy-prow-ver4
     cluster: prow-service-trusted
     run_if_changed: '^config/prow/cluster/'
     decorate: true
     branches:
-    - master
+    - main
     spec:
       containers:
       - image: public.ecr.aws/t0q8k6g2/vagator/test-image:v20221003-6f693ab
