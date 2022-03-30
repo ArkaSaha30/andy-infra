@@ -2,7 +2,7 @@
 ### comment to initiate config-updater deploy ###
 postsubmits:
   AndyTauber/andy-infra:
-  - name: post-andy-infra-deploy-prow-ver4
+  - name: post-andy-infra-deploy-prow-ver5
     cluster: prow-service-trusted
     run_if_changed: '^config/prow/cluster/'
     decorate: true
@@ -16,8 +16,7 @@ postsubmits:
         args:
         - AndyTauber
         - andy-infra
-          cd ./config && \
-          make deploy
+        - cd ./config && make deploy
         volumeMounts:
         - name: kubeconfig
           mountPath: /etc/kubeconfig
