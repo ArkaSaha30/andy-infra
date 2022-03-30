@@ -23,7 +23,7 @@ postsubmits:
         volumeMounts:
         - name: kubeconfig
           mountPath: /etc/kubeconfig
-          readOnly: true
+          readOnly: false
       volumes:
       - name: kubeconfig
         secret:
