@@ -45,15 +45,15 @@ periodics:
       args:
       - --config=config/prow/autobump-config/prow-component-autobump-config.yaml
       volumeMounts:
-      - name: github
-        mountPath: /etc/github-token
+      - name: oauth-token
+        mountPath: /etc/oauth-token
         readOnly: true
 #      - name: ssh
 #        mountPath: /root/.ssh
     volumes:
-    - name: github
+    - name: oauth-token
       secret:
-        secretName: github-token
+        secretName: oauth-token
 #    - name: ssh
 #      secret:
 #        secretName: ci-robot-ssh-keys
