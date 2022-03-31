@@ -9,7 +9,7 @@ skipPullRequest: false
 gitHubOrg: "AndyTauber"
 gitHubRepo: "andy-infra"
 remoteName: "andy-infra"
-upstreamURLBase: "https://raw.githubusercontent.com/AndyTauber/andy-infra/master"
+upstreamURLBase: "https://raw.githubusercontent.com/AndyTauber/andy-infra/main"
 includedConfigPaths:
   - "."
 excludedConfigPaths:
