@@ -319,6 +319,9 @@ function install_prow_on_service_cluster {
     # create github token
     kubectl -n prow create secret generic github-token --from-file=cert=${GITHUB_TOKEN_PATH} --from-literal=appid=${GITHUB_APP_ID}
 
+    # create github token in test-pods for autobump to use
+    kubectl -n test-pods create secret generic github-token --from-file=cert=${GITHUB_TOKEN_PATH} --from-literal=appid=${GITHUB_APP_ID}
+
     # create github OAuth secrets
     kubectl -n prow create secret generic github-oauth-config --from-file=secret=${OAUTH_CONFIG_PATH}
     kubectl -n prow create secret generic cookie --from-file=secret=${COOKIE_PATH}
