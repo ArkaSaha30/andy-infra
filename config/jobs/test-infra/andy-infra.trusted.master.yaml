@@ -29,7 +29,7 @@ postsubmits:
           secretName: kubeconfig
 #
 periodics:
-- cron: "*/15 * * * 1-5"  # Bump don't label `skip-review`. Run at :15 past every hour Mon-Fri
+- cron: "15 5 * * 1-5"  # Bump don't label `skip-review`. Run at 5:15 Mon-Fri
   name: ci-test-infra-autobump-prow
   cluster: prow-service-trusted
   decorate: true

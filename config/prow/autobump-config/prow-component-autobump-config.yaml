@@ -18,7 +18,7 @@ targetVersion: "latest"
 prefixes:
   - name: "Prow"
     prefix: "gcr.io/k8s-prow/"
-    refConfigFile: "config/prow/cluster/deck.yaml"
+    refConfigFile: "config/prow/cluster/deck_deployment.yaml"
     repo: "https://github.com/AndyTauber/andy-infra"
     summarise: true
     consistentImages: true
