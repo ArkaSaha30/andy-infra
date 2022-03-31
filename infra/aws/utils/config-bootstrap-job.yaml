@@ -21,7 +21,7 @@ spec:
           mountPath: /andy-infra
       containers:
       - name: prow-config-bootstrapper
-        image: gcr.io/k8s-prow/config-bootstrapper:v20220330-0793228920
+        image: gcr.io/k8s-prow/config-bootstrapper:v20220331-c4e1c201d5
         args:
         - --dry-run=false
         - --source-path=/andy-infra
