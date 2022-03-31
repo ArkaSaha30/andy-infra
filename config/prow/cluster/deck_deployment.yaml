@@ -25,7 +25,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: deck
-        image: gcr.io/k8s-prow/deck:v20211203-281e29a97a
+        image: gcr.io/k8s-prow/deck:v20220331-c4e1c201d5
         args:
         - --config-path=/etc/config/config.yaml
         - --job-config-path=/etc/job-config
