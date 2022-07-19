@@ -1,0 +1,67 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "annotations": {
+      "kapp-controller.carvel.dev/exclude-global-packages": "",
+      "kapp.k14s.io/identity": "v1;//Namespace/monitoring;v1",
+      "kapp.k14s.io/original": "{\"apiVersion\":\"v1\",\"kind\":\"Namespace\",\"metadata\":{\"labels\":{\"app\":\"prometheus\",\"component\":\"server\",\"kapp.k14s.io/app\":\"1650476009566448788\",\"kapp.k14s.io/association\":\"v1.b7df1db8c841f5a123fe0768af2f9f1f\"},\"name\":\"monitoring\"}}",
+      "kapp.k14s.io/original-diff-md5": "13df6e97902898c8345cf75566796a4c"
+    },
+    "creationTimestamp": "2022-04-20T14:44:51Z",
+    "deletionTimestamp": "2022-04-20T17:49:31Z",
+    "labels": {
+      "app": "prometheus",
+      "component": "server",
+      "kapp.k14s.io/app": "1650476009566448788",
+      "kapp.k14s.io/association": "v1.b7df1db8c841f5a123fe0768af2f9f1f",
+      "kubernetes.io/metadata.name": "monitoring"
+    },
+    "name": "monitoring",
+    "resourceVersion": "8652292",
+    "uid": "2e2ba4d0-bf39-49c7-8914-0976eb7d94d6"
+  },
+  "spec": {
+    "finalizers": []
+  },
+  "status": {
+    "conditions": [
+      {
+        "lastTransitionTime": "2022-04-20T17:49:42Z",
+        "message": "All resources successfully discovered",
+        "reason": "ResourcesDiscovered",
+        "status": "False",
+        "type": "NamespaceDeletionDiscoveryFailure"
+      },
+      {
+        "lastTransitionTime": "2022-04-20T17:49:42Z",
+        "message": "All legacy kube types successfully parsed",
+        "reason": "ParsedGroupVersions",
+        "status": "False",
+        "type": "NamespaceDeletionGroupVersionParsingFailure"
+      },
+      {
+        "lastTransitionTime": "2022-04-20T17:49:42Z",
+        "message": "All content successfully deleted, may be waiting on finalization",
+        "reason": "ContentDeleted",
+        "status": "False",
+        "type": "NamespaceDeletionContentFailure"
+      },
+      {
+        "lastTransitionTime": "2022-04-20T17:49:42Z",
+        "message": "Some resources are remaining: apps.kappctrl.k14s.io has 1 resource instances, packageinstalls.packaging.carvel.dev has 1 resource instances",
+        "reason": "SomeResourcesRemain",
+        "status": "True",
+        "type": "NamespaceContentRemaining"
+      },
+      {
+        "lastTransitionTime": "2022-04-20T17:49:42Z",
+        "message": "Some content in the namespace has finalizers remaining: finalizers.kapp-ctrl.k14s.io/delete in 1 resource instances, finalizers.packageinstall.packaging.carvel.dev/delete in 1 resource instances",
+        "reason": "SomeFinalizersRemain",
+        "status": "True",
+        "type": "NamespaceFinalizersRemaining"
+      }
+    ],
+    "phase": "Terminating"
+  }
+}
