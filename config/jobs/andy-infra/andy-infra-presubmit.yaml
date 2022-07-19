@@ -1,13 +1,21 @@
-### comment to initiate config-updater deploy ###
+# sample jobs for info
 presubmits:
   AndyTauber/andy-infra:
-  - name: pull-andy-infra-prow-checkconfig-ver4
-    cluster: prow-build
+  - name: andy-infra-presubmit-print
+    cluster: prow-gke-build
+    decorate: true
+    always_run: true
+    spec:
+      containers:
+      - image: alpine
+        command: ["/bin/printenv"]
+  - name: andy-infra-presubmit-checkconfig
+    cluster: prow-gke-build
     decorate: true
     run_if_changed: '^(config/prow/(config|plugins).yaml$|config/jobs/.*.yaml$)'
     spec:
       containers:
-      - image: gcr.io/k8s-prow/checkconfig:v20220331-c4e1c201d5
+      - image: gcr.io/k8s-prow/checkconfig:v20211216-b5865074c4
         command:
         - /checkconfig
         args:
@@ -23,4 +31,3 @@ presubmits:
         - --warnings=validate-urls
         - --warnings=unknown-fields
         - --warnings=duplicate-job-refs
-#

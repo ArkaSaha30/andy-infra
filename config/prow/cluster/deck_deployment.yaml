@@ -121,6 +121,8 @@ kind: Service
 metadata:
   namespace: prow
   name: deck
+  annotations:
+    beta.cloud.google.com/backend-config: '{"default": "backend-config-iap"}'
 spec:
   selector:
     app: deck

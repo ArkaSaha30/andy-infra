@@ -1,0 +1,11 @@
+# sample jobs for info
+postsubmits:
+  AndyTauber/andy-prow:
+  - name: andy-prow-postsubmit-print
+    cluster: prow-gke-build
+    decorate: true
+    always_run: true
+    spec:
+      containers:
+      - image: alpine
+        command: ["/bin/printenv"]
