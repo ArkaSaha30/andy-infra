@@ -1,0 +1,67 @@
+##
+# Cronjob to generate and upgrade the kubeconfig in the gcp secret manager
+# All the necessary configurations are provided in the mounted configmap
+#
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kubeconfig-builder-job
+spec:
+  schedule: "* */10 * * *"
+  concurrencyPolicy: Allow
+  startingDeadlineSeconds: 100
+  suspend: false
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+            - name: artifact-registry
+          serviceAccountName: serviceaccount-cluster-admin
+          containers:
+          - name: kubeconfig-builder-job
+            image: us-west1-docker.pkg.dev/prow-tkg-build/prow-prod-registry/kubeconfig-builder-job:1.0
+            imagePullPolicy: IfNotPresent
+            envFrom:
+            - configMapRef:
+                name: kubeconfig-builder-config
+            volumeMounts:
+            - name: secretmanager-cred
+              mountPath: /etc/secretmanagercred/
+              readOnly: true
+          restartPolicy: OnFailure
+          volumes:
+          - name: secretmanager-cred
+            secret:
+              secretName: secret-manager-credentials
+---
+
+##
+# Configmap with all the relevant environment variables for the kubeconfig-builder-job to work
+# This configmap is mounted with the cronjob as envrionment variables
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubeconfig-builder-config
+  namespace: default
+data:
+  # GCP PROJECTID where the service cluster lies
+  GCP_SERVICE_CLUSTER_PROJECTID: prow-open-btr  
+  
+  # Prow build cluster kubeconfig secret name
+  PROW_CLUSTER_KUBECONFIG_SECRETNAME: kubeconfig-gke_prow-open-btr_us-central1_prow-service-sandbox-sonu   
+
+  # Expiry for the new token to be generated
+  PROW_CLUSTER_TOKEN_EXPIRY: 6h     
+
+  # Prow Build cluster config name
+  PROW_CLUSTER_CONFIG_NAME: gke-prow-build-cluster
+
+  # Build Cluster Service Account Details
+  PROW_CLUSTER_SERVICE_ACCOUNT_NAME: serviceaccount-cluster-admin            
+                               
+  # Credentials path for secretmanager
+  GOOGLE_APPLICATION_CREDENTIALS: /etc/secretmanagercred/serviceaccount.json      
