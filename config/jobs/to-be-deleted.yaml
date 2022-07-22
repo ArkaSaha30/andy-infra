@@ -1,0 +1,22 @@
+apiVersion: v1
+data:
+  job-seed.yaml: |
+    presubmit:
+      AndyTauber/andy-infra:
+      - name: test-presubmit-andy-infra
+        # cluster: prow-service-trusted
+        labels: 
+          preset-pubsub-credentials: "true"
+        annotations: 
+          prow.k8s.io/pubsub.project: "prow-open-btr"
+          prow.k8s.io/pubsub.topic: "openbtr"
+          prow.k8s.io/pubsub.EventType: "prow.k8s.io/pubsub.PresubmitProwJobEvent"
+        decorate: true
+        spec:
+          containers:
+          - image: alpine
+            command: ["/bin/printenv"]
+kind: ConfigMap
+metadata:
+  name: job-config
+  namespace: prow
