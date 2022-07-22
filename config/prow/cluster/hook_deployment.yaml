@@ -37,7 +37,7 @@ spec:
         - --job-config-path=/etc/job-config
         env:
         - name: KUBECONFIG
-          value: "/etc/kubeconfig/config:/etc/kubeconfig/config"
+          value: "/etc/kubeconfig-default/config:/etc/kubeconfig-prow-service-trusted/config:/etc/kubeconfig-prow-gke-build/config"
         - name: GITHUB_APP_ID
           valueFrom:
             secretKeyRef:
@@ -49,8 +49,14 @@ spec:
           - name: metrics
             containerPort: 9090
         volumeMounts:
-        - name: kubeconfig
-          mountPath: /etc/kubeconfig
+        - mountPath: /etc/kubeconfig-default
+          name: kubeconfig-default
+          readOnly: true
+        - mountPath: /etc/kubeconfig-prow-service-trusted
+          name: kubeconfig-prow-service-trusted
+          readOnly: true
+        - mountPath: /etc/kubeconfig-prow-gke-build
+          name: kubeconfig-prow-gke-build
           readOnly: true
         - name: hmac
           mountPath: /etc/webhook
@@ -81,10 +87,18 @@ spec:
           periodSeconds: 3
           timeoutSeconds: 600
       volumes:
-      - name: kubeconfig
+      - name: kubeconfig-default
         secret:
           defaultMode: 420
-          secretName: kubeconfig
+          secretName: kubeconfig-default
+      - name: kubeconfig-prow-service-trusted
+        secret:
+          defaultMode: 420
+          secretName: kubeconfig-prow-service-trusted
+      - name: kubeconfig-prow-gke-build
+        secret:
+          defaultMode: 420
+          secretName: kubeconfig-prow-gke-build
       - name: hmac
         secret:
           secretName: hmac-token

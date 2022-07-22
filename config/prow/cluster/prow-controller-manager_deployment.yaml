@@ -35,14 +35,20 @@ spec:
               name: github-token
               key: appid
         - name: KUBECONFIG
-          value: "/etc/kubeconfig/config:/etc/kubeconfig/config"
+          value: "/etc/kubeconfig-default/config:/etc/kubeconfig-prow-service-trusted/config:/etc/kubeconfig-prow-gke-build/config"
         ports:
         - name: metrics
           containerPort: 9090
         image: gcr.io/k8s-prow/prow-controller-manager:v20220331-c4e1c201d5
         volumeMounts:
-        - name: kubeconfig
-          mountPath: /etc/kubeconfig
+        - mountPath: /etc/kubeconfig-default
+          name: kubeconfig-default
+          readOnly: true
+        - mountPath: /etc/kubeconfig-prow-service-trusted
+          name: kubeconfig-prow-service-trusted
+          readOnly: true
+        - mountPath: /etc/kubeconfig-prow-gke-build
+          name: kubeconfig-prow-gke-build
           readOnly: true
         - name: github-token
           mountPath: /etc/github
@@ -54,10 +60,18 @@ spec:
           mountPath: /etc/job-config
           readOnly: true
       volumes:
-      - name: kubeconfig
+      - name: kubeconfig-default
         secret:
-          secretName: kubeconfig
           defaultMode: 420
+          secretName: kubeconfig-default
+      - name: kubeconfig-prow-service-trusted
+        secret:
+          defaultMode: 420
+          secretName: kubeconfig-prow-service-trusted
+      - name: kubeconfig-prow-gke-build
+        secret:
+          defaultMode: 420
+          secretName: kubeconfig-prow-gke-build
       - name: github-token
         secret:
           secretName: github-token
