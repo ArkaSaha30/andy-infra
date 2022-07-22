@@ -6,7 +6,7 @@
 
 ### prerequisite
 
-- Current version of the tool is designed in a way that it assumes the Prow service cluster is deployed in GCP connected to the secret manager via external-secrets operator to sync the secrets in realtime. 
+- Current version of the tool is designed in a way that it assumes the Prow service cluster is deployed in GCP connected to the secret manager via external-secrets operator to sync the secrets in realtime.
 - The job image is currently present in the private container registry `prow-prod-registry` in the `prow-tkg-build` GCP Project, so the build cluster should have the necessary credentials to connect to the registry.
 
 ### Configurations
@@ -24,7 +24,7 @@ There are few environment variables the job is expecting, these environment vari
 
 ### Deployment
 
-#### 1. Create the serviceaccount and the clusterrole bindings in the default namespace 
+#### 1. Create the serviceaccount and the clusterrole bindings in the default namespace
 
 `kubectl apply -f deploy/cluster/clusterrole.yaml`
 
@@ -38,15 +38,15 @@ metadata:
   namespace: default
 data:
   # GCP PROJECTID where the service cluster lies
-  GCP_SERVICE_CLUSTER_PROJECTID: ""
+  GCP_SERVICE_CLUSTER_PROJECTID: "prow-open-btr"
   # Prow build cluster kubeconfig secret name
-  PROW_CLUSTER_KUBECONFIG_SECRETNAME: ""
+  PROW_CLUSTER_KUBECONFIG_SECRETNAME: "kubeconfig-prow-gke-build"
   # Expiry for the new token to be generated
-  PROW_CLUSTER_TOKEN_EXPIRY: "24h"
+  PROW_CLUSTER_TOKEN_EXPIRY: "48h"
   # Prow Build cluster config name
-  PROW_CLUSTER_CONFIG_NAME: ""
+  PROW_CLUSTER_CONFIG_NAME: "prow-gke-build"
   # Build Cluster Service Account Details
-  PROW_CLUSTER_SERVICE_ACCOUNT_NAME: ""   
+  PROW_CLUSTER_SERVICE_ACCOUNT_NAME: "serviceaccount-cluster-admin"   
   # Credentials path for secretmanager
   GOOGLE_APPLICATION_CREDENTIALS: /etc/secretmanagercred/serviceaccount.json      
 ```
@@ -63,7 +63,7 @@ kind: CronJob
 metadata:
   name: kubeconfig-builder-job
 spec:
-  schedule: "* */10 * * *"
+  schedule: "0 12 * * *"
   concurrencyPolicy: Allow
   startingDeadlineSeconds: 100
   suspend: false
@@ -78,7 +78,7 @@ spec:
           serviceAccountName: serviceaccount-cluster-admin
           containers:
           - name: kubeconfig-builder-job
-            image: us-west1-docker.pkg.dev/prow-tkg-build/prow-prod-registry/kubeconfig-builder-job:1.0
+            image: us-west1-docker.pkg.dev/prow-open-btr/prow-sandbox-registry/kubeconfig-builder-job:1.0
             imagePullPolicy: IfNotPresent
             envFrom:
             - configMapRef:
@@ -117,3 +117,69 @@ gcloud projects add-iam-policy-binding PROJECT_ID --member="serviceAccount:SERVI
 gcloud iam service-accounts keys create FILE_NAME.json --iam-account=SERVICE_ACCOUNT_NAME@PROJECT_ID.iam.gserviceaccount.com
 ```
 
+## Notes on how to automate with service accounts and ESO synch:
+```
+# installing the kubeconfig job in sandbox
+# on build cluster
+
+#create service account for secret manager
+gcloud iam service-accounts create prow-secret-writer \
+    --project=prow-open-btr
+
+# add roles to GSA
+gcloud projects add-iam-policy-binding prow-open-btr \
+    --member "serviceAccount:prow-secret-writer@prow-open-btr.iam.gserviceaccount.com" \
+    --role roles/secretmanager.admin
+
+gcloud projects add-iam-policy-binding prow-open-btr \
+    --member "serviceAccount:prow-service-secrets@prow-open-btr.iam.gserviceaccount.com" \
+    --role roles/secretmanager.secretAccessor
+
+gcloud projects add-iam-policy-binding prow-open-btr \
+    --member "serviceAccount:prow-build-secrets@prow-open-btr.iam.gserviceaccount.com" \
+    --role roles/secretmanager.secretAccessor
+
+# download the service account
+
+# create secret for service account
+secretmanager-cred
+
+# create service account
+kubectl create serviceaccount prow-build-secrets-sa \
+    --namespace default
+
+# bind KSA to GSA
+gcloud iam service-accounts add-iam-policy-binding prow-build-secrets@prow-open-btr.iam.gserviceaccount.com \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:prow-open-btr.svc.id.goog[default/prow-build-secrets-sa]"
+
+# annotate KSA
+kubectl annotate serviceaccount prow-build-secrets-sa \
+    --namespace default \
+    iam.gke.io/gcp-service-account=prow-build-secrets@prow-open-btr.iam.gserviceaccount.com
+
+# install ESO
+kubectl -n default apply -f prow-build-cluster-secret-store-default.yaml
+kubectl -n default apply -f prow-build-external-secrets-default.yaml
+
+
+# on service cluster
+
+# create service account
+kubectl create serviceaccount prow-service-secrets-sa \
+    --namespace default
+
+# bind KSA to GSA
+gcloud iam service-accounts add-iam-policy-binding prow-service-secrets@prow-open-btr.iam.gserviceaccount.com \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:prow-open-btr.svc.id.goog[default/prow-service-secrets-sa]"
+
+# annotate KSA
+kubectl annotate serviceaccount prow-service-secrets-sa \
+    --namespace default \
+    iam.gke.io/gcp-service-account=prow-service-secrets@prow-open-btr.iam.gserviceaccount.com
+
+# install ESO
+kubectl -n default apply -f prow-service-cluster-secret-store-default.yaml
+kubectl -n default apply -f prow-service-external-secrets-default.yaml
+```
