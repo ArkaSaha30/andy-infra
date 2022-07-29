@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -42,7 +43,7 @@ func main() {
 // Upgrade the newly created kubeconfig file in the secret Manager
 func UpdateKubeconfigToSecretManager(kubeconfig []byte) error {
 
-	secretName := utility.GetEnv(constants.ProwBuildClusterKubeconfigSecretname, "")
+	secretName := fmt.Sprintf("kubeconfig-%s", utility.GetEnv(constants.ProwBuildClusterKubeConfigName, ""))
 
 	secretResult, err := gcloud.StoreSecretToSecretManager(secretName, &kubeconfig)
 

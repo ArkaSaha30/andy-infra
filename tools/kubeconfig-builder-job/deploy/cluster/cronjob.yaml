@@ -5,15 +5,13 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: kubeconfig-prow-service-trusted
+  name: kubeconfig-prow-gke-build
 spec:
   schedule: "0 0 * * *"
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
   concurrencyPolicy: Allow
   startingDeadlineSeconds: 100
   suspend: false
-  successfulJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
@@ -23,12 +21,12 @@ spec:
             - name: artifact-registry
           serviceAccountName: serviceaccount-cluster-admin
           containers:
-          - name: kubeconfig-prow-service-trusted
-            image: us-west1-docker.pkg.dev/prow-open-btr/prow-sandbox-registry/kubeconfig-builder-job:1.0
+          - name: kubeconfig-prow-gke-build
+            image: us-west1-docker.pkg.dev/prow-tkg-build/prow-prod-registry/kubeconfig-builder-job:3.0
             imagePullPolicy: IfNotPresent
             envFrom:
             - configMapRef:
-                name: kubeconfig-prow-service-trusted
+                name: kubeconfig-prow-gke-build
             volumeMounts:
             - name: secretmanager-cred
               mountPath: /etc/secretmanagercred/
@@ -47,23 +45,32 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: kubeconfig-prow-service-trusted
+  name: kubeconfig-prow-gke-build
   namespace: default
 data:
   # GCP PROJECTID where the service cluster lies
-  GCP_SERVICE_CLUSTER_PROJECTID: prow-open-btr
+  SERVICE_CLUSTER_PROJECTID: prow-open-btr
 
-  # Prow build cluster kubeconfig secret name
-  PROW_CLUSTER_KUBECONFIG_SECRETNAME: kubeconfig-prow-service-trusted
-
-  # Expiry for the new token to be generated
-  PROW_CLUSTER_TOKEN_EXPIRY: 48h
+  # Expiry for the new
+  TOKEN_DURATION: 48h
 
   # Prow Build cluster config name
-  PROW_CLUSTER_CONFIG_NAME: prow-service-trusted
+  KUBECONFIG_NAME: prow-gke-build
 
   # Build Cluster Service Account Details
-  PROW_CLUSTER_SERVICE_ACCOUNT_NAME: serviceaccount-cluster-admin
+  SERVICE_ACCOUNT_NAME: serviceaccount-cluster-admin
 
   # Credentials path for secretmanager
   GOOGLE_APPLICATION_CREDENTIALS: /etc/secretmanagercred/service-account.json
+
+  # Apiserver address type - private/public
+  APISERVER_ADDRESS_TYPE: private
+
+  # Build cluster name
+  BUILD_CLUSTER_NAME: prow-build
+
+  # Build cluster location
+  BUILD_CLUSTER_LOCATION: us-west1
+
+  # Build cluster projectId
+  BUILD_CLUSTER_PROJECTID: prow-open-btr
