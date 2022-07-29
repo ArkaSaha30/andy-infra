@@ -71,10 +71,10 @@ func getServiceAccountCredentials(clientset kubernetes.Interface, duration metav
 func CreateClusterServiceAccountCredentials(clientset kubernetes.Interface) (kubeconfig []byte, err error) {
 
 	// Get the Build cluster config name
-	buildClusterConfigName := utility.GetEnv(constants.ProwBuildClusterConfigName, "build-cluster")
+	buildClusterConfigName := utility.GetEnv(constants.ProwBuildClusterKubeConfigName, "build-cluster")
 
 	// Setting up expiry for the token secret
-	tokenExpiry := utility.GetEnv(constants.ProwBuildClusterTokenExpiry, "72h")
+	tokenExpiry := utility.GetEnv(constants.ProwBuildClusterTokenExpiry, "120h")
 	tokenDuration, err := time.ParseDuration(tokenExpiry)
 
 	if err != nil {
@@ -87,6 +87,8 @@ func CreateClusterServiceAccountCredentials(clientset kubernetes.Interface) (kub
 	if err != nil {
 		return nil, fmt.Errorf("get or create SA: %w", err)
 	}
+
+	//log.Infof(string(token))
 
 	authInfo := clientcmdapi.AuthInfo{
 		Token: string(token),

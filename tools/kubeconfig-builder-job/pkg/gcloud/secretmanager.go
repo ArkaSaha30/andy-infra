@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu-openbtr/gencred-build/pkg/utility"
 	"github.com/vmware-tanzu-openbtr/gencred-build/pkg/utility/constants"
+	"google.golang.org/api/iterator"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
@@ -104,4 +105,46 @@ func VerifySecretManagercreedExists() (*string, error) {
 	} else {
 		return &credentialsPath, err
 	}
+}
+
+// cleanDeprecatedSecretversions - cleans up old secret versions which are deprecated.
+func cleanDeprecatedSecretversions(client *secretmanager.Client, projectID string, secret string) {
+
+	ctx := context.Background()
+
+	listSecretVersionsRequest := &secretmanagerpb.ListSecretVersionsRequest{
+		Parent: fmt.Sprintf("projects/%s/secrets/%s", projectID, secret),
+	}
+
+	versions := client.ListSecretVersions(ctx, listSecretVersionsRequest)
+
+	for {
+		resp, err := versions.Next()
+
+		if err == iterator.Done {
+			break
+		}
+
+		if err != nil {
+			log.Errorf("failed to list secret versions: %v", err)
+			return
+		}
+
+		log.Printf("Found secret version %s with state %s\n",
+			resp.Name, resp.State)
+	}
+
+	// destroySecretVersionRequest := &secretmanagerpb.DestroySecretVersionRequest{
+	// 	Name: fmt.Sprintf("projects/%s/secrets/%s/versions/%s", projectID, secret, "2"),
+	// }
+
+	// res, err := client.DestroySecretVersion(ctx, destroySecretVersionRequest)
+
+	// if err != nil {
+	// 	log.Warnf("Unable to cleanup the old secret Versions %v", err)
+	// 	return
+	// }
+
+	// log.Debugf("Cleaned up old secret Versions %v", res)
+
 }
