@@ -22,7 +22,7 @@ spec:
           serviceAccountName: serviceaccount-cluster-admin
           containers:
           - name: kubeconfig-prow-gke-build
-            image: us-west1-docker.pkg.dev/prow-tkg-build/prow-prod-registry/kubeconfig-builder-job:3.0
+            image: us-west1-docker.pkg.dev/prow-open-btr/prow-sandbox-registry/kubeconfig-builder-job:3.0
             imagePullPolicy: IfNotPresent
             envFrom:
             - configMapRef:
@@ -70,7 +70,7 @@ data:
   BUILD_CLUSTER_NAME: prow-build
 
   # Build cluster location
-  BUILD_CLUSTER_LOCATION: us-west1
+  BUILD_CLUSTER_LOCATION: us-west1-a
 
   # Build cluster projectId
   BUILD_CLUSTER_PROJECTID: prow-open-btr
