@@ -140,53 +140,62 @@ presets:
     mountPath: /docker-graph
   - name: docker-root
     mountPath: /var/lib/docker
-# AWS ECR registry creds
+# kind volume volumeMounts
 - labels:
-    preset-registry-credentials: "true"
-  env:
-  - name: REGISTRY_ENABLED
-    value: "true"
-  - name: REGISTRY_USERNAME
-    value: /etc/registry-username/username
-  - name: REGISTRY_PASSWORD
-    value: /etc/registry-password/password
-  volumes:
-  - name: registry-username
-    secret:
-      defaultMode: 0400
-      secretName: registry-username
-  - name: registry-password
-    secret:
-      defaultMode: 0400
-      secretName: registry-password
+    preset-kind-volume-mounts: "true"
   volumeMounts:
-  - name: registry-username
-    mountPath: /etc/registry-username
-    readOnly: true
-  - name: registry-password
-    mountPath: /etc/registry-password
-    readOnly: true
-# AWS credentials
+    - mountPath: /lib/modules
+      name: modules
+      readOnly: true
+    - mountPath: /sys/fs/cgroup
+      name: cgroup
+  volumes:
+    - name: modules
+      hostPath:
+        path: /lib/modules
+        type: Directory
+    - name: cgroup
+      hostPath:
+        path: /sys/fs/cgroup
+        type: Directory
+# GCP project environment variables
 - labels:
-    preset-aws-credentials: "true"
+    preset-gc-compute-envs: "true"
   env:
-  - name: AWS_ACCESS_KEY_ID
-    value: /etc/aws-access-key-id/aws-access-key-id
-  - name: AWS_SECRET_ACCESS_KEY
-    value: /etc/aws-access-key-secret/aws-access-key-secret
+    - name: CLOUDSDK_COMPUTE_REGION
+      value: "us-west1"
+- labels:
+    preset-gc-project-env: "true"
+  env:
+    - name: CLOUDSDK_CORE_PROJECT
+      value: "prow-open-btr"
+# gcp integration tests
+# https://cloud.google.com/compute/docs/tutorials/service-account-ssh
+# https://cloud.google.com/compute/docs/oslogin/set-up-oslogin
+- labels:
+    preset-sa-gcp-prow-integration: "true" # Service account with "Compute Admin" and "Compute OS Admin Login" roles
+  env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /etc/credentials/sa-gcp-prow-integration/service-account.json
   volumes:
-  - name: aws-access-key-id
-    secret:
-      defaultMode: 0400
-      secretName: aws-access-key-id
-  - name: aws-access-key-secret
-    secret:
-      defaultMode: 0400
-      secretName: aws-access-key-secret
+    - name: sa-gcp-prow-integration
+      secret:
+        secretName: sa-gcp-prow-integration
   volumeMounts:
-  - name: aws-access-key-id
-    mountPath: /etc/aws-access-key-id
-    readOnly: true
-  - name: aws-access-key-secret
-    mountPath: /etc/aws-access-key-secret
-    readOnly: true
+    - name: sa-gcp-prow-integration
+      mountPath: /etc/credentials/sa-gcp-prow-integration
+      readOnly: true
+# gke integration tests
+- labels:
+    preset-sa-gke-prow-integration: "true"
+  env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /etc/credentials/sa-gke-prow-integration/service-account.json
+  volumes:
+    - name: sa-gke-prow-integration
+      secret:
+        secretName: sa-gke-prow-integration
+  volumeMounts:
+    - name: sa-gke-prow-integration
+      mountPath: /etc/credentials/sa-gke-prow-integration
+      readOnly: true

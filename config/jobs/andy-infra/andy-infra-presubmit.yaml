@@ -2,7 +2,7 @@
 presubmits:
   AndyTauber/andy-infra:
   - name: andy-infra-presubmit-print
-    cluster: prow-gke-build
+    cluster: prow-service-trusted
     decorate: true
     always_run: true
     spec:
@@ -10,7 +10,7 @@ presubmits:
       - image: alpine
         command: ["/bin/printenv"]
   - name: andy-infra-presubmit-checkconfig
-    cluster: prow-gke-build
+    cluster: prow-service-trusted
     decorate: true
     run_if_changed: '^(config/prow/(config|plugins).yaml$|config/jobs/.*.yaml$)'
     spec:
