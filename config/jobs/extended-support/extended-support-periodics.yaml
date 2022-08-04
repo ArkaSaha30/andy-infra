@@ -1,7 +1,7 @@
 periodics:
 - interval: 1m
   name: ci-kubernetes-unit
-  cluster: prow-build
+  cluster: prow-gke-build
   annotations:
     fork-per-release: "true"
   decorate: true
