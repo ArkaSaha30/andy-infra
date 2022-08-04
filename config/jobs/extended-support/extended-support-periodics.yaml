@@ -1,0 +1,30 @@
+periodics:
+- interval: 1m
+  name: ci-kubernetes-unit
+  cluster: prow-build
+  annotations:
+    fork-per-release: "true"
+  decorate: true
+  extra_refs:
+    - org: kubernetes
+      repo: kubernetes
+      base_ref: master
+      path_alias: k8s.io/kubernetes
+  spec:
+    # unit tests have no business requiring root or doing privileged operations
+    securityContext:
+      runAsUser: 2000
+      allowPrivilegeEscalation: false
+    containers:
+      - image: gcr.io/k8s-staging-test-infra/kubekins-e2e:v20220722-16ae0286c2-master
+        command:
+          - make
+          - test
+        # TODO: direct copy from pull-kubernetes-bazel-test, tune these
+        resources:
+          limits:
+            cpu: 4
+            memory: "36Gi"
+          requests:
+            cpu: 4
+            memory: "36Gi"
