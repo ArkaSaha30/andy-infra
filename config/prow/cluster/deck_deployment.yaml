@@ -43,7 +43,7 @@ spec:
         - --cookie-secret=/etc/cookie/secret
         env:
         - name: KUBECONFIG
-          value: "/etc/kubeconfig-default/config:/etc/kubeconfig-prow-service-trusted/config:/etc/kubeconfig-prow-gke-build/config"
+          value: "/etc/kubeconfig-default/config:/etc/kubeconfig-prow-service-trusted/config:/etc/kubeconfig-prow-gke-build/config:/etc/kubeconfig-tkg-es-prow-build/kubeconfig-es"
         - name: GITHUB_APP_ID
           valueFrom:
             secretKeyRef:
@@ -61,6 +61,9 @@ spec:
           readOnly: true
         - mountPath: /etc/kubeconfig-prow-gke-build
           name: kubeconfig-prow-gke-build
+          readOnly: true
+        - mountPath: /etc/kubeconfig-tkg-es-prow-build
+          name: kubeconfig-tkg-es-prow-build
           readOnly: true
         - name: oauth-config
           mountPath: /etc/githuboauth
@@ -109,6 +112,10 @@ spec:
         secret:
           defaultMode: 420
           secretName: kubeconfig-prow-gke-build
+      - name: kubeconfig-tkg-es-prow-build
+        secret:
+          defaultMode: 420
+          secretName: kubeconfig-tkg-es-prow-build
       - name: oauth-config
         secret:
           secretName: github-oauth-config
