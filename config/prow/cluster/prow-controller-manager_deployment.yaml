@@ -35,7 +35,7 @@ spec:
               name: github-token
               key: appid
         - name: KUBECONFIG
-          value: "/etc/kubeconfig-default/config:/etc/kubeconfig-prow-service-trusted/config:/etc/kubeconfig-prow-gke-build/config"
+          value: "/etc/kubeconfig-default/config:/etc/kubeconfig-prow-service-trusted/config:/etc/kubeconfig-prow-gke-build/config:/etc/kubeconfig-tkg-es-prow-build/kubeconfig-es"
         ports:
         - name: metrics
           containerPort: 9090
@@ -49,6 +49,9 @@ spec:
           readOnly: true
         - mountPath: /etc/kubeconfig-prow-gke-build
           name: kubeconfig-prow-gke-build
+          readOnly: true
+        - mountPath: /etc/kubeconfig-tkg-es-prow-build
+          name: kubeconfig-tkg-es-prow-build
           readOnly: true
         - name: github-token
           mountPath: /etc/github
@@ -72,6 +75,10 @@ spec:
         secret:
           defaultMode: 420
           secretName: kubeconfig-prow-gke-build
+      - name: kubeconfig-tkg-es-prow-build
+        secret:
+          defaultMode: 420
+          secretName: kubeconfig-tkg-es-prow-build
       - name: github-token
         secret:
           secretName: github-token
