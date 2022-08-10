@@ -1,0 +1,17 @@
+---
+postsubmits:
+  AndyTauber/andy-infra:
+    - name: running-tce-package-test
+      cluster: prow-service-trusted
+      decorate: true
+      run_if_changed: 'config/jobs/tce'
+      clone_uri: git@github.com:vmware-tanzu/community-edition.git
+      spec:
+        containers:
+          - image: alpine
+            command: ["/bin/bash"]
+            args:
+              - cd
+              - community-edition
+              - make
+              - unmanaged-cluster-e2e-test
