@@ -3,15 +3,15 @@ plank:
     '*': https://prow.andytauber.info/view/
   pod_pending_timeout: 15m
   pod_unscheduled_timeout: 5m
-  default_decoration_configs:
-    '*':
+  default_decoration_config_entries:
+  - config:
       timeout: 2h
       grace_period: 15m
       utility_images:
-        clonerefs: "gcr.io/k8s-prow/clonerefs:v20220331-c4e1c201d5"
-        initupload: "gcr.io/k8s-prow/initupload:v20220331-c4e1c201d5"
-        entrypoint: "gcr.io/k8s-prow/entrypoint:v20220331-c4e1c201d5"
-        sidecar: "gcr.io/k8s-prow/sidecar:v20220331-c4e1c201d5"
+        clonerefs: "gcr.io/k8s-prow/clonerefs:v20220810-a8a8778c45"
+        initupload: "gcr.io/k8s-prow/initupload:v20220810-a8a8778c45"
+        entrypoint: "gcr.io/k8s-prow/entrypoint:v20220810-a8a8778c45"
+        sidecar: "gcr.io/k8s-prow/sidecar:v20220810-a8a8778c45"
       gcs_configuration:
         bucket: sandbox-gcs-publisher
         path_strategy: "explicit"
@@ -29,6 +29,12 @@ plank:
         sidecar:
           requests:
             cpu: 100m
+  - cluster: tkg-es-infra-prow-build
+    config:
+      gcs_credentials_secret: "" # Use workload identity
+      gcs_configuration:
+        bucket: "tkg-es-openbtr-prow"
+      default_service_account_name: "prowjob-default-sa"
 
 sinker:
   resync_period: 1m

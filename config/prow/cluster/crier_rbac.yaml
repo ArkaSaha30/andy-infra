@@ -4,6 +4,8 @@ apiVersion: v1
 metadata:
   name: crier
   namespace: prow
+  annotations:
+    iam.gke.io/gcp-service-account: "control-plane@prow-open-btr.iam.gserviceaccount.com"
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
