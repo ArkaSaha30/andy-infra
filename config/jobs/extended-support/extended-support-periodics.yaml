@@ -23,8 +23,8 @@ periodics:
         # TODO: direct copy from pull-kubernetes-bazel-test, tune these
         resources:
           limits:
-            cpu: 4
-            memory: "36Gi"
+            cpu: 8
+            memory: "64Gi"
           requests:
             cpu: 4
             memory: "36Gi"
