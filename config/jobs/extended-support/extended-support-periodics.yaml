@@ -16,7 +16,7 @@ periodics:
       runAsUser: 2000
       allowPrivilegeEscalation: false
     containers:
-      - image: gcr.io/k8s-staging-test-infra/kubekins-e2e:v20220722-16ae0286c2-master
+      - image: gcr.io/k8s-staging-test-infra/kubekins-e2e:v20220804-4fa19ea91a-master
         command:
           - make
           - test
