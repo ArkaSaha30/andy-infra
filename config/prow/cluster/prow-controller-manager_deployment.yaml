@@ -39,7 +39,7 @@ spec:
         ports:
         - name: metrics
           containerPort: 9090
-        image: gcr.io/k8s-prow/prow-controller-manager:v20220331-c4e1c201d5
+        image: gcr.io/k8s-prow/prow-controller-manager:v20220810-a8a8778c45
         volumeMounts:
         - mountPath: /etc/kubeconfig-default
           name: kubeconfig-default
