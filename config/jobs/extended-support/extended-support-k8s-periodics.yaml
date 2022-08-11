@@ -20,13 +20,14 @@ periodics:
         command:
           - make
           - test
+        # TODO: direct copy from pull-kubernetes-bazel-test, tune these
         resources:
           limits:
             cpu: 4
-            memory: "16Gi"
+            memory: "36Gi"
           requests:
             cpu: 4
-            memory: "16Gi"
+            memory: "36Gi"
 - interval: 1h
   name: ci-kubernetes-kind-e2e-parallel
   cluster: tkg-es-infra-prow-build
@@ -73,3 +74,48 @@ periodics:
           # this is mostly for building kubernetes
           memory: 9Gi
           cpu: 7
+- interval: 1m
+  name: ci-kubernetes-verify-master
+  cluster: tkg-es-infra-prow-build
+  labels:
+    preset-sa-gcp-prow-integration: "true"
+    preset-dind-enabled: "true"
+  annotations:
+    fork-per-release: "true"
+    fork-per-release-periodic-interval: 2h 2h 6h 24h
+    description: "Ends up running: make verify"
+  decorate: true
+  extra_refs:
+  - org: kubernetes
+    repo: kubernetes
+    base_ref: master
+    path_alias: k8s.io/kubernetes
+  spec:
+    containers:
+    - image: gcr.io/k8s-staging-test-infra/kubekins-e2e:v20220804-4fa19ea91a-master
+      imagePullPolicy: Always
+      command:
+      - runner.sh
+      args:
+      - ./hack/jenkins/verify-dockerized.sh
+      env:
+      - name: EXCLUDE_READONLY_PACKAGE
+        value: "y"
+      - name: KUBE_VERIFY_GIT_BRANCH
+        value: master
+      - name: REPO_DIR
+        value: /workspace/k8s.io/kubernetes
+      # Consider removing after https://github.com/golang/go/issues/49035 is solved
+      # See https://github.com/kubernetes/kubernetes/pull/108618
+      - name: TYPECHECK_SERIAL
+        value: "true"
+      # docker-in-docker needs privileged mode
+      securityContext:
+        privileged: true
+      resources:
+        limits:
+          cpu: 6
+          memory: 24Gi
+        requests:
+          cpu: 6
+          memory: 24Gi
