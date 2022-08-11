@@ -30,7 +30,7 @@ periodics:
             memory: "36Gi"
 - interval: 1m
   name: ci-kubernetes-kind-e2e-parallel
-  cluster: prow-gke-build
+  cluster: tkg-es-infra-prow-build
   annotations:
     description: Uses kubetest to run e2e tests against a latest kubernetes master cluster created with sigs.k8s.io/kind
     fork-per-release: "true"
